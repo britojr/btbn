@@ -119,17 +119,18 @@ func structureLearning() {
 	log.Println("Creating the bounded-treewidth structure learning algorithm")
 	algorithm := optimizer.Create(optimizerAlg, parmFile, scoreRankers)
 	// algorithm.PrintParameters()
+
+	log.Println("Searching bounded-treewidth structure")
 	solution := algorithm.Search(numSolutions, timeAvailable)
 	writeSolution(bnetFile, solution)
+}
 
+func writeSolution(fname string, bnet interface{}) {
+	// datastructures::BNStructure bnet
 	// log.Printf("Time: %v, Total score: %v, Normalized: %v\n", elapsed,
 	// -solution.getScore(), scoreFunction.Normalize(bestScore))
 	// writeOutput(resultFile,
 	// "tree-with,norm-score,num-var,iterations,elapsed-time\n",
 	// k, scoreFunction.Normalize(bestScore), n, iterations, elapsed)
-}
-
-func writeSolution(fname string, bnet interface{}) {
-	// datastructures::BNStructure bnet
 	log.Println("Printing solution")
 }
