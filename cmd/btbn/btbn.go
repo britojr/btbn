@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/britojr/btbn/optimizer"
+	"github.com/britojr/btbn/score"
 )
 
 // Define subcommand names
@@ -19,11 +22,14 @@ var (
 	verbose bool // verbose mode
 
 	// struct command
-	k       int    // treewidth
-	p       int    // max parents
-	nk      int    // number of k-trees to sample
-	scorefi string // scores file
-	ctreefo string // cliquetree output file
+	scoreFile     string // scores input file
+	bnetFile      string // network output file
+	parmFile      string // parameters file for search algorithms
+	optimizerAlg  string // structure optimizer algorithm
+	k             int    // treewidth
+	maxPa         int    // max parents
+	timeAvailable int    // time available to search solution
+	numSolutions  int    // number of iterations
 
 	// Define subcommands
 	structComm *flag.FlagSet
@@ -52,12 +58,16 @@ func initSubcommands() {
 	structComm = flag.NewFlagSet(structConst, flag.ExitOnError)
 
 	// struct subcommand flags
-	structComm.StringVar(&scorefi, "si", "", "scores input file")
-	structComm.StringVar(&ctreefo, "co", "", "cliquetree output file")
-	structComm.IntVar(&k, "k", 3, "treewidth of the structure")
-	structComm.IntVar(&p, "p", 3, "max number of parents")
-	structComm.IntVar(&nk, "nk", 1, "number of ktrees samples")
 	structComm.BoolVar(&verbose, "v", false, "prints detailed steps")
+	structComm.StringVar(&scoreFile, "sfi", "", "scores input file")
+	structComm.StringVar(&bnetFile, "parm", "", "parameters file")
+	structComm.StringVar(&bnetFile, "bfo", "", "network output file")
+	structComm.StringVar(&optimizerAlg, "alg", "sample", "structure optimizer algorithm")
+	structComm.IntVar(&k, "k", 3, "treewidth of the structure")
+	// for these limits, zero means unlimited
+	structComm.IntVar(&maxPa, "p", 3, "max number of parents")
+	structComm.IntVar(&timeAvailable, "t", 60, "available time to search solution")
+	structComm.IntVar(&numSolutions, "i", 1, "number of iterations")
 }
 
 func printDefaults() {
@@ -72,7 +82,7 @@ func printDefaults() {
 
 func runStructComm() {
 	// Required Flags
-	if scorefi == "" {
+	if scoreFile == "" {
 		fmt.Printf("\n error: missing score file\n\n")
 		structComm.PrintDefaults()
 		os.Exit(1)
@@ -81,7 +91,45 @@ func runStructComm() {
 		log.SetFlags(0)
 		log.SetOutput(ioutil.Discard)
 	}
-	// print arguments
-	// ...
-	// run command
+
+	structureLearning()
+}
+
+func structureLearning() {
+	log.Printf("========== STEP: STRUCTURE OPTIMIZATION ========== \n")
+	log.Printf("Learning algorithm: '%v'\n", optimizerAlg)
+	log.Printf("Max. iterations: %v\n", numSolutions)
+	log.Printf("Max. time available (sec): %v\n", timeAvailable)
+
+	log.Println("Reading score cache")
+	scoreCache := score.Read(scoreFile)
+
+	n := scoreCache.Nvar()
+	log.Printf("Nvar=%v\n", n)
+	if k <= 0 || n < k+2 {
+		log.Fatalln("Please choose values such that: n >= k+2 and k > 0")
+	}
+
+	log.Println("Creating score rankers")
+	// scoreRankers := score.CreateRankers(scoreRankType, scoreCache, maxPa)
+	scoreRankers := score.CreateRankers(scoreCache, maxPa)
+	// TODO: may need to load a pre-computed mutual information file
+	// TODO: dataset will also be nedded when dealing with hidden variables
+
+	log.Println("Creating the bounded-treewidth structure learning algorithm")
+	algorithm := optimizer.Create(optimizerAlg, parmFile, scoreRankers)
+	// algorithm.PrintParameters()
+	solution := algorithm.Search(numSolutions, timeAvailable)
+	writeSolution(bnetFile, solution)
+
+	// log.Printf("Time: %v, Total score: %v, Normalized: %v\n", elapsed,
+	// -solution.getScore(), scoreFunction.Normalize(bestScore))
+	// writeOutput(resultFile,
+	// "tree-with,norm-score,num-var,iterations,elapsed-time\n",
+	// k, scoreFunction.Normalize(bestScore), n, iterations, elapsed)
+}
+
+func writeSolution(fname string, bnet interface{}) {
+	// datastructures::BNStructure bnet
+	log.Println("Printing solution")
 }
