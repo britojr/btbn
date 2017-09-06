@@ -28,7 +28,7 @@ type listRanker struct {
 	scoreList []varsetScore
 }
 
-// NewListRanker creates new mapRanker
+// NewListRanker creates new listRanker
 func NewListRanker(varIndex int, cache *Cache, maxPa int) Ranker {
 	m := &listRanker{}
 	m.varIndex = varIndex
