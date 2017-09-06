@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/britojr/btbn/varset"
 	"github.com/britojr/utl/ioutl"
-	"github.com/willf/bitset"
 )
 
 // Cache stores pre-computed score information
@@ -59,17 +59,17 @@ func Read(fname string) *Cache {
 			panic(err)
 		}
 
-		parents := bitset.New(uint(c.Nvar()))
+		parents := varset.New(c.Nvar())
 		for i := 1; i < len(words); i++ {
-			parents.Set(uint(c.varIndex[words[i]]))
+			parents.Set(c.varIndex[words[i]])
 		}
 		c.putScore(currVar, parents, scoreVal)
 	}
 	return c
 }
 
-func (c *Cache) putScore(v int, parents *bitset.BitSet, scoreVal float64) {
-	c.caches[v][parents.DumpAsBits()] = scoreVal
+func (c *Cache) putScore(v int, parents varset.Varset, scoreVal float64) {
+	c.caches[v][parents.HashString()] = scoreVal
 }
 
 // Nvar returns the number of variables

@@ -1,11 +1,11 @@
 package score
 
-import "github.com/willf/bitset"
+import "github.com/britojr/btbn/varset"
 
 // varsetScore a pair (varset, score)
 type varsetScore struct {
 	scor float64
-	vars *bitset.BitSet
+	vars varset.Varset
 }
 
 // varsetScores defines a sortable list of pairs (varset, score)

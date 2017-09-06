@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/britojr/utl/conv"
-	"github.com/willf/bitset"
+	"github.com/britojr/btbn/varset"
 )
 
 // Ranker defines a list of best scores for a given variable
 type Ranker interface {
-	BestIn(restrictSet *bitset.BitSet) (parents *bitset.BitSet, localScore float64)
+	BestIn(restrictSet varset.Varset) (parents varset.Varset, localScore float64)
 }
 
 // CreateRankers creates array of rankers, one for each variable
@@ -36,15 +35,17 @@ func NewListRanker(varIndex int, cache *Cache, maxPa int) Ranker {
 	m.maxPa = maxPa
 	scoreMap := cache.Scores(varIndex)
 	m.scoreList = make([]varsetScore, 0, len(scoreMap))
-	for k, v := range scoreMap {
-		m.scoreList = append(m.scoreList, varsetScore{v, conv.AtoBs(k)})
+	for s, scor := range scoreMap {
+		pset := varset.New(len(s))
+		pset.SetHashString(s)
+		m.scoreList = append(m.scoreList, varsetScore{scor, pset})
 	}
 	sort.Sort(varsetScores(m.scoreList))
 	return m
 }
 
 // BestIn finds the highest scoring parent set that is contained in the given restriction set
-func (m *listRanker) BestIn(restric *bitset.BitSet) (parents *bitset.BitSet, scr float64) {
+func (m *listRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr float64) {
 	if len(m.scoreList) == 0 {
 		panic(fmt.Errorf("Score list is empty"))
 	}
