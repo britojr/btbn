@@ -59,15 +59,15 @@ func initSubcommands() {
 
 	// struct subcommand flags
 	structComm.BoolVar(&verbose, "v", false, "prints detailed steps")
-	structComm.StringVar(&scoreFile, "sfi", "", "scores input file")
+	structComm.StringVar(&scoreFile, "s", "", "precomputed scores file")
 	structComm.StringVar(&bnetFile, "parm", "", "parameters file")
-	structComm.StringVar(&bnetFile, "bfo", "", "network output file")
-	structComm.StringVar(&optimizerAlg, "alg", "sample", "structure optimizer algorithm")
+	structComm.StringVar(&bnetFile, "b", "", "network output file")
+	structComm.StringVar(&optimizerAlg, "a", "sample", "structure optimizer algorithm {sample|iterative}")
 	// structComm.IntVar(&k, "k", 3, "treewidth of the structure")
 	// for these limits, zero means unlimited
-	structComm.IntVar(&maxPa, "p", 3, "max number of parents")
 	structComm.IntVar(&timeAvailable, "t", 60, "available time to search solution")
 	structComm.IntVar(&numSolutions, "i", 1, "number of iterations")
+	structComm.IntVar(&maxPa, "mp", 0, "max number of parents (0- unbounded)")
 }
 
 func printDefaults() {
