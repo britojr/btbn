@@ -22,14 +22,14 @@ var (
 	verbose bool // verbose mode
 
 	// struct command
-	scoreFile     string // scores input file
-	bnetFile      string // network output file
-	parmFile      string // parameters file for search algorithms
-	optimizerAlg  string // structure optimizer algorithm
-	k             int    // treewidth
-	maxPa         int    // max parents
-	timeAvailable int    // time available to search solution
-	numSolutions  int    // number of iterations
+	scoreFile    string // scores input file
+	bnetFile     string // network output file
+	parmFile     string // parameters file for search algorithms
+	optimizerAlg string // structure optimizer algorithm
+	// k             int    // treewidth
+	maxPa         int // max parents
+	timeAvailable int // time available to search solution
+	numSolutions  int // number of iterations
 
 	// Define subcommands
 	structComm *flag.FlagSet
@@ -63,7 +63,7 @@ func initSubcommands() {
 	structComm.StringVar(&bnetFile, "parm", "", "parameters file")
 	structComm.StringVar(&bnetFile, "bfo", "", "network output file")
 	structComm.StringVar(&optimizerAlg, "alg", "sample", "structure optimizer algorithm")
-	structComm.IntVar(&k, "k", 3, "treewidth of the structure")
+	// structComm.IntVar(&k, "k", 3, "treewidth of the structure")
 	// for these limits, zero means unlimited
 	structComm.IntVar(&maxPa, "p", 3, "max number of parents")
 	structComm.IntVar(&timeAvailable, "t", 60, "available time to search solution")
@@ -103,12 +103,6 @@ func structureLearning() {
 
 	log.Println("Reading score cache")
 	scoreCache := score.Read(scoreFile)
-
-	n := scoreCache.Nvar()
-	log.Printf("Nvar=%v\n", n)
-	if k <= 0 || n < k+2 {
-		log.Fatalln("Please choose values such that: n >= k+2 and k > 0")
-	}
 
 	log.Println("Creating score rankers")
 	// scoreRankers := score.CreateRankers(scoreRankType, scoreCache, maxPa)
