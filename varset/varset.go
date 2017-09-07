@@ -8,6 +8,7 @@ type Varset interface {
 	SetHashString(s string)
 	IsSuperSet(other Varset) bool
 	Set(i int) Varset
+	Count() int
 }
 
 var varsetTypeDefault = "uibset"

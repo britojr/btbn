@@ -24,7 +24,6 @@ func CreateRankers(cache *Cache, maxPa int) []Ranker {
 // listRanker trivial implementation of score ranker
 type listRanker struct {
 	varIndex  int
-	maxPa     int
 	scoreList []varsetScore
 }
 
@@ -32,13 +31,14 @@ type listRanker struct {
 func NewListRanker(varIndex int, cache *Cache, maxPa int) Ranker {
 	m := &listRanker{}
 	m.varIndex = varIndex
-	m.maxPa = maxPa
 	scoreMap := cache.Scores(varIndex)
 	m.scoreList = make([]varsetScore, 0, len(scoreMap))
 	for s, scor := range scoreMap {
 		pset := varset.New(len(s))
 		pset.SetHashString(s)
-		m.scoreList = append(m.scoreList, varsetScore{scor, pset})
+		if maxPa <= 0 || pset.Count() <= maxPa {
+			m.scoreList = append(m.scoreList, varsetScore{scor, pset})
+		}
 	}
 	sort.Sort(varsetScores(m.scoreList))
 	return m
