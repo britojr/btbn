@@ -12,10 +12,10 @@ type Optimizer interface {
 }
 
 // Create creates a structure optimizer algorithm
-func Create(optimizerAlg, parmFile string, scoreRankers []score.Ranker) Optimizer {
+func Create(optimizerAlg string, scoreRankers []score.Ranker, parmFile string) Optimizer {
 	switch optimizerAlg {
 	case "sample":
-		return NewSampleSearch(parmFile, scoreRankers)
+		return NewSampleSearch(scoreRankers, parmFile)
 	default:
 		panic(fmt.Errorf("invalid algorithm option: '%v'", optimizerAlg))
 	}

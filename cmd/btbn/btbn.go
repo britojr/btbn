@@ -117,7 +117,7 @@ func structureLearning() {
 	// TODO: dataset will also be nedded when dealing with hidden variables
 
 	log.Println("Creating the bounded-treewidth structure learning algorithm")
-	algorithm := optimizer.Create(optimizerAlg, parmFile, scoreRankers)
+	algorithm := optimizer.Create(optimizerAlg, scoreRankers, parmFile)
 	// algorithm.PrintParameters()
 
 	log.Println("Searching bounded-treewidth structure")
