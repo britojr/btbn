@@ -80,8 +80,10 @@ func Search(algorithm Optimizer, numSolutions, timeAvailable int) *BNStructure {
 
 func setParameters(alg Optimizer, parmFile string) {
 	alg.SetDefaultParameters()
-	parms := readParametersFile(parmFile)
-	alg.SetFileParameters(parms)
+	if len(parmFile) > 0 {
+		parms := readParametersFile(parmFile)
+		alg.SetFileParameters(parms)
+	}
 }
 
 func readParametersFile(parmFile string) map[string]string {
