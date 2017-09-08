@@ -10,6 +10,7 @@ import (
 // Ranker defines a list of best scores for a given variable
 type Ranker interface {
 	BestIn(restrictSet varset.Varset) (parents varset.Varset, localScore float64)
+	ScoreOf(parents varset.Varset) float64
 }
 
 // CreateRankers creates array of rankers, one for each variable
@@ -55,4 +56,8 @@ func (m *listRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr f
 		}
 	}
 	panic(fmt.Errorf("Can't find score for variable %v with restriction %v", m.varIndex, restric))
+}
+
+func (m *listRanker) ScoreOf(parents varset.Varset) float64 {
+	panic("not implemented")
 }
