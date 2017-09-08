@@ -3,6 +3,7 @@ package optimizer
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"time"
 
 	yaml "gopkg.in/yaml.v2"
@@ -19,13 +20,14 @@ type Optimizer interface {
 }
 
 // Create creates a structure optimizer algorithm
-func Create(optimizerAlg string, scoreRankers []score.Ranker, parmFile string) Optimizer {
+func Create(optimizerAlg string, scoreRankers []score.Ranker, parmFile string) (opt Optimizer) {
 	switch optimizerAlg {
 	case "sample":
-		return newSampleSearch(scoreRankers, parmFile)
+		opt = newSampleSearch(scoreRankers, parmFile)
 	default:
-		panic(fmt.Errorf("invalid algorithm option: '%v'", optimizerAlg))
+		log.Panicf("invalid algorithm option: '%v'", optimizerAlg)
 	}
+	return
 }
 
 // Search applies the optimizer strategy to find the best solution

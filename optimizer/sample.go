@@ -1,7 +1,6 @@
 package optimizer
 
 import (
-	"errors"
 	"log"
 	"time"
 
@@ -51,6 +50,6 @@ func (s *sampleSearch) validate() {
 	n := len(s.scoreRankers)
 	if s.tw <= 0 || n < s.tw+2 {
 		log.Printf("n=%v, tw=%v\n", n, s.tw)
-		panic(errors.New("Invalid treewidth! Please choose values such that: n >= tw+2 and tw > 0"))
+		log.Panic("Invalid treewidth! Choose values such that: n >= tw+2 and tw > 0")
 	}
 }
