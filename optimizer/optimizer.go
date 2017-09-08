@@ -3,6 +3,7 @@ package optimizer
 import (
 	"fmt"
 	"io/ioutil"
+	"time"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -29,32 +30,51 @@ func Create(optimizerAlg string, scoreRankers []score.Ranker, parmFile string) O
 
 // Search applies the optimizer strategy to find the best solution
 func Search(algorithm Optimizer, numSolutions, timeAvailable int) interface{} {
-	var best *BNStructure
+	var best, current *BNStructure
 	if numSolutions <= 0 && timeAvailable <= 0 {
 		numSolutions = 1
 	}
-	i := 0
-	// remaining = available
-	for {
-		// timeout in remaining
-		// start = tick
-		current := algorithm.Search()
-		// elapsed = tick - start
-		// remaining -= elapsed
+	if timeAvailable > 0 {
+		// TODO: the documentation recommends using NewTimer(d).C instead of time.After
+		i := 0
+		remaining := time.Duration(timeAvailable) * time.Second
+		for {
+			ch := make(chan *BNStructure, 1)
+			start := time.Now()
+			go func() {
+				ch <- algorithm.Search()
+			}()
+			select {
+			case current = <-ch:
+			case <-time.After(remaining):
+			}
+			remaining -= time.Since(start)
 
-		if best == nil || current.Better(best) {
-			best = current
+			if best == nil || current.Better(best) {
+				best = current
+			}
+			if remaining <= 0 {
+				break
+			}
+			i++
+			if numSolutions > 0 && i >= numSolutions {
+				break
+			}
 		}
-		// if remaining <= 0 {
-		// 	break
-		// }
-		i++
-		if numSolutions > 0 && i >= numSolutions {
-			break
+	} else {
+		for i := 0; i < numSolutions; i++ {
+			current := algorithm.Search()
+			if best == nil || current.Better(best) {
+				best = current
+			}
 		}
 	}
 	fmt.Println(" === BEST === ")
-	fmt.Printf("Score = %.6f\n", best.Score())
+	if best != nil {
+		fmt.Printf("Score = %.6f\n", best.Score())
+	} else {
+		fmt.Printf("Couldn't find any solution in the given time!\n")
+	}
 	return best
 }
 
@@ -84,7 +104,7 @@ func NewBNStructure() *BNStructure {
 
 // Better returns true if this structure has a better score
 func (b *BNStructure) Better(other *BNStructure) bool {
-	return b.scoreVal > other.scoreVal
+	return (other == nil) || b.scoreVal > other.scoreVal
 }
 
 // Score returns the structure score
