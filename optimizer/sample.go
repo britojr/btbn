@@ -22,8 +22,8 @@ func newSampleSearch(scoreRankers []score.Ranker, parmFile string) Optimizer {
 	return s
 }
 
-// Search search network structure
-func (s *sampleSearch) Search(numSolutions, timeAvailable int) interface{} {
+// Search search for a network structure
+func (s *sampleSearch) Search() *BNStructure {
 	return nil
 }
 

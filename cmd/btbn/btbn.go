@@ -115,7 +115,7 @@ func structureLearning() {
 	// algorithm.PrintParameters()
 
 	log.Println("Searching bounded-treewidth structure")
-	solution := algorithm.Search(numSolutions, timeAvailable)
+	solution := optimizer.Search(algorithm, numSolutions, timeAvailable)
 	writeSolution(bnetFile, solution)
 }
 
