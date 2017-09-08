@@ -60,7 +60,7 @@ func initSubcommands() {
 	// struct subcommand flags
 	structComm.BoolVar(&verbose, "v", false, "prints detailed steps")
 	structComm.StringVar(&scoreFile, "s", "", "precomputed scores file")
-	structComm.StringVar(&bnetFile, "parm", "", "parameters file")
+	structComm.StringVar(&parmFile, "p", "", "parameters file")
 	structComm.StringVar(&bnetFile, "b", "", "network output file")
 	structComm.StringVar(&optimizerAlg, "a", "sample", "structure optimizer algorithm {sample|iterative}")
 	// structComm.IntVar(&k, "k", 3, "treewidth of the structure")
@@ -100,6 +100,9 @@ func structureLearning() {
 	log.Printf("Learning algorithm: '%v'\n", optimizerAlg)
 	log.Printf("Max. iterations: %v\n", numSolutions)
 	log.Printf("Max. time available (sec): %v\n", timeAvailable)
+	log.Printf("Pre-computed scores file: '%v'\n", scoreFile)
+	log.Printf("Parameters file: '%v'\n", parmFile)
+	log.Printf("Save solution in: '%v'\n", bnetFile)
 
 	log.Println("Reading score cache")
 	scoreCache := score.Read(scoreFile)
@@ -110,7 +113,7 @@ func structureLearning() {
 	// TODO: may need to load a pre-computed mutual information file
 	// TODO: dataset will also be nedded when dealing with hidden variables
 
-	log.Println("Creating the bounded-treewidth structure learning algorithm")
+	log.Println("Creating bounded-treewidth structure learning algorithm")
 	algorithm := optimizer.Create(optimizerAlg, scoreRankers, parmFile)
 	// algorithm.PrintParameters()
 
@@ -126,5 +129,5 @@ func writeSolution(fname string, bnet *optimizer.BNStructure) {
 	// writeOutput(resultFile,
 	// "tree-with,norm-score,num-var,iterations,elapsed-time\n",
 	// k, scoreFunction.Normalize(bestScore), n, iterations, elapsed)
-	log.Println("Printing solution")
+	log.Printf("Printing solution: '%v'\n", fname)
 }
