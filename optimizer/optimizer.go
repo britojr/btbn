@@ -46,18 +46,16 @@ func Search(algorithm Optimizer, numSolutions, timeAvailable int) *BNStructure {
 			}()
 			select {
 			case current = <-ch:
+				remaining -= time.Since(start)
 			case <-time.After(remaining):
+				remaining = 0
 			}
-			remaining -= time.Since(start)
 
 			if best == nil || current.Better(best) {
 				best = current
 			}
-			if remaining <= 0 {
-				break
-			}
 			i++
-			if numSolutions > 0 && i >= numSolutions {
+			if remaining <= 0 || (numSolutions > 0 && i >= numSolutions) {
 				break
 			}
 		}
