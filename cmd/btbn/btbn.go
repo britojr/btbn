@@ -22,14 +22,13 @@ var (
 	verbose bool // verbose mode
 
 	// struct command
-	scoreFile    string // scores input file
-	bnetFile     string // network output file
-	parmFile     string // parameters file for search algorithms
-	optimizerAlg string // structure optimizer algorithm
-	// k             int    // treewidth
-	maxPa         int // max parents
-	timeAvailable int // time available to search solution
-	numSolutions  int // number of iterations
+	scoreFile     string // scores input file
+	bnetFile      string // network output file
+	parmFile      string // parameters file for search algorithms
+	optimizerAlg  string // structure optimizer algorithm
+	maxPa         int    // max parents
+	timeAvailable int    // time available to search solution
+	numSolutions  int    // number of iterations
 
 	// Define subcommands
 	structComm *flag.FlagSet
@@ -59,15 +58,15 @@ func initSubcommands() {
 
 	// struct subcommand flags
 	structComm.BoolVar(&verbose, "v", false, "prints detailed steps")
+
 	structComm.StringVar(&scoreFile, "s", "", "precomputed scores file")
 	structComm.StringVar(&parmFile, "p", "", "parameters file")
 	structComm.StringVar(&bnetFile, "b", "", "network output file")
+
 	structComm.StringVar(&optimizerAlg, "a", "sample", "structure optimizer algorithm {sample|iterative}")
-	// structComm.IntVar(&k, "k", 3, "treewidth of the structure")
-	// for these limits, zero means unlimited
-	structComm.IntVar(&timeAvailable, "t", 60, "available time to search solution")
-	structComm.IntVar(&numSolutions, "i", 1, "number of iterations")
-	structComm.IntVar(&maxPa, "mp", 0, "max number of parents (0- unbounded)")
+	structComm.IntVar(&timeAvailable, "t", 60, "available time to search solution (0->unbounded)")
+	structComm.IntVar(&numSolutions, "i", 1, "max number of iterations (0->unbounded)")
+	structComm.IntVar(&maxPa, "mp", 0, "max number of parents (0->unbounded)")
 }
 
 func printDefaults() {
