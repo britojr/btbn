@@ -19,6 +19,11 @@ func (c *Ctree) VarIn() int {
 	panic("not implemented")
 }
 
+// VarOut returns variable that was removed relative to parent
+func (c *Ctree) VarOut() int {
+	panic("not implemented")
+}
+
 // SepSet returns the intersection with parent
 func (c *Ctree) SepSet() []int {
 	panic("not implemented")
