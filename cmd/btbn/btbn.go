@@ -119,7 +119,7 @@ func structureLearning() {
 	writeSolution(bnetFile, solution)
 }
 
-func writeSolution(fname string, bnet interface{}) {
+func writeSolution(fname string, bnet *optimizer.BNStructure) {
 	// datastructures::BNStructure bnet
 	// log.Printf("Time: %v, Total score: %v, Normalized: %v\n", elapsed,
 	// -solution.getScore(), scoreFunction.Normalize(bestScore))

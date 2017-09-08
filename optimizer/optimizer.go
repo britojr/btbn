@@ -29,7 +29,7 @@ func Create(optimizerAlg string, scoreRankers []score.Ranker, parmFile string) O
 }
 
 // Search applies the optimizer strategy to find the best solution
-func Search(algorithm Optimizer, numSolutions, timeAvailable int) interface{} {
+func Search(algorithm Optimizer, numSolutions, timeAvailable int) *BNStructure {
 	var best, current *BNStructure
 	if numSolutions <= 0 && timeAvailable <= 0 {
 		numSolutions = 1
@@ -90,24 +90,4 @@ func readParametersFile(parmFile string) map[string]string {
 	errchk.Check(err, "")
 	errchk.Check(yaml.Unmarshal([]byte(data), &m), "")
 	return m
-}
-
-// BNStructure defines a structure solution
-type BNStructure struct {
-	scoreVal float64
-}
-
-// NewBNStructure creates a new structure
-func NewBNStructure() *BNStructure {
-	return new(BNStructure)
-}
-
-// Better returns true if this structure has a better score
-func (b *BNStructure) Better(other *BNStructure) bool {
-	return (other == nil) || b.scoreVal > other.scoreVal
-}
-
-// Score returns the structure score
-func (b *BNStructure) Score() float64 {
-	return b.scoreVal
 }
