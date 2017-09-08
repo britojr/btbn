@@ -39,6 +39,9 @@ func Read(fname string) *Cache {
 	c.varIndex = varIndex
 	c.varName = varName
 	c.caches = make([]map[string]float64, c.Nvar())
+	for i := range c.caches {
+		c.caches[i] = make(map[string]float64)
+	}
 
 	// rewind file to read parents score
 	f.Seek(0, 0)
