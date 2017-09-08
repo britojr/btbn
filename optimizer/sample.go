@@ -11,6 +11,7 @@ import (
 // SampleSearch implements the sampling strategy
 type sampleSearch struct {
 	tw           int            //treewidth
+	nv           int            // number of variables
 	scoreRankers []score.Ranker // score rankers for each variable
 }
 
@@ -18,6 +19,7 @@ type sampleSearch struct {
 func newSampleSearch(scoreRankers []score.Ranker, parmFile string) Optimizer {
 	s := new(sampleSearch)
 	s.scoreRankers = scoreRankers
+	s.nv = len(s.scoreRankers)
 	setParameters(s, parmFile)
 	s.validate()
 	return s
@@ -25,6 +27,8 @@ func newSampleSearch(scoreRankers []score.Ranker, parmFile string) Optimizer {
 
 // Search search for a network structure
 func (s *sampleSearch) Search() *BNStructure {
+	// ctree.Sample(s.nv, s.tw) sample a ktree
+	// dag.LearnFromKTree(ctree, s.scoreRankers) // returns a bnstruct (parentset list and score)
 	bn := NewBNStructure()
 	bn.scoreVal = -1
 	time.Sleep(1 * time.Second)
@@ -47,9 +51,8 @@ func (s *sampleSearch) SetFileParameters(parms map[string]string) {
 
 // Validate validates parameters
 func (s *sampleSearch) validate() {
-	n := len(s.scoreRankers)
-	if s.tw <= 0 || n < s.tw+2 {
-		log.Printf("n=%v, tw=%v\n", n, s.tw)
+	if s.tw <= 0 || s.nv < s.tw+2 {
+		log.Printf("n=%v, tw=%v\n", s.nv, s.tw)
 		log.Panic("Invalid treewidth! Choose values such that: n >= tw+2 and tw > 0")
 	}
 }
