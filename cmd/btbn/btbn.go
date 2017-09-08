@@ -87,7 +87,6 @@ func runStructComm() {
 		os.Exit(1)
 	}
 	if !verbose {
-		log.SetFlags(0)
 		log.SetOutput(ioutil.Discard)
 	}
 
