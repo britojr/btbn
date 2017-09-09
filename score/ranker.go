@@ -36,7 +36,7 @@ func NewListRanker(varIndex int, cache *Cache, maxPa int) Ranker {
 	m.scoreList = make([]varsetScore, 0, len(scoreMap))
 	for s, scor := range scoreMap {
 		pset := varset.New(len(s))
-		pset.SetHashString(s)
+		pset.SetFromString(s)
 		if maxPa <= 0 || pset.Count() <= maxPa {
 			m.scoreList = append(m.scoreList, varsetScore{scor, pset})
 		}

@@ -4,8 +4,8 @@ import "fmt"
 
 // Varset defines a variable set type
 type Varset interface {
-	HashString() string
-	SetHashString(s string)
+	DumpAsString() string
+	SetFromString(s string)
 	IsSuperSet(other Varset) bool
 	Set(i int) Varset
 	Count() int

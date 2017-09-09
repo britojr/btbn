@@ -10,11 +10,11 @@ func newUibset(size int) Varset {
 	return &uibset{bitset.New(uint(size))}
 }
 
-func (b *uibset) HashString() string {
+func (b *uibset) DumpAsString() string {
 	return b.DumpAsBits()
 }
 
-func (b *uibset) SetHashString(s string) {
+func (b *uibset) SetFromString(s string) {
 	for i, v := range s {
 		if v == '1' {
 			b.BitSet.Set(uint(i))
