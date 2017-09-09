@@ -28,3 +28,8 @@ func (c *Ctree) VarOut() int {
 func (c *Ctree) SepSet() []int {
 	panic("not implemented")
 }
+
+// UniformSample uniformly samples a ktree
+func UniformSample(n, k int) *Ctree {
+	panic("not implemented")
+}

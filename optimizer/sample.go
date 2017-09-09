@@ -2,8 +2,8 @@ package optimizer
 
 import (
 	"log"
-	"time"
 
+	"github.com/britojr/btbn/ctree"
 	"github.com/britojr/btbn/score"
 	"github.com/britojr/utl/conv"
 )
@@ -25,14 +25,10 @@ func newSampleSearch(scoreRankers []score.Ranker, parmFile string) Optimizer {
 	return s
 }
 
-// Search search for a network structure
+// Search searchs for a network structure
 func (s *sampleSearch) Search() *BNStructure {
-	// ctree.Sample(s.nv, s.tw) sample a ktree
-	// dag.LearnFromKTree(ctree, s.scoreRankers) // returns a bnstruct (parentset list and score)
-	bn := NewBNStructure()
-	bn.scoreVal = -1
-	time.Sleep(1 * time.Second)
-	log.Println("a search")
+	c := ctree.UniformSample(s.nv, s.tw)
+	bn := DAGapproximatedLearning(c, s.scoreRankers)
 	return bn
 }
 
