@@ -6,9 +6,11 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"github.com/britojr/btbn/optimizer"
 	"github.com/britojr/btbn/score"
+	"github.com/britojr/btbn/varset"
 )
 
 // Define subcommand names
@@ -116,16 +118,28 @@ func structureLearning() {
 	// algorithm.PrintParameters()
 
 	log.Println("Searching bounded-treewidth structure")
+	start := time.Now()
 	solution := optimizer.Search(algorithm, numSolutions, timeAvailable)
+	elapsed := time.Since(start)
+
+	totScore := solution.Score()
+	empScore := emptySetScore(scoreRankers)
+	log.Printf("Time: %v, Total score: %v, Normalized: %v\n",
+		elapsed, totScore, empScore,
+	)
 	writeSolution(bnetFile, solution)
 }
 
-func writeSolution(fname string, bnet *optimizer.BNStructure) {
-	// datastructures::BNStructure bnet
-	// log.Printf("Time: %v, Total score: %v, Normalized: %v\n", elapsed,
-	// -solution.getScore(), scoreFunction.Normalize(bestScore))
-	// writeOutput(resultFile,
-	// "tree-with,norm-score,num-var,iterations,elapsed-time\n",
-	// k, scoreFunction.Normalize(bestScore), n, iterations, elapsed)
+func writeSolution(fname string, bn *optimizer.BNStructure) {
+	// bn.Size() bn.Parents(i).DumpString()
 	log.Printf("Printing solution: '%v'\n", fname)
+}
+
+// emptySetScore calculates the total score for when the parents sets are empty
+func emptySetScore(rankers []score.Ranker) (es float64) {
+	parents := varset.New(len(rankers))
+	for _, ranker := range rankers {
+		es += ranker.ScoreOf(parents)
+	}
+	return
 }

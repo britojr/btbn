@@ -13,8 +13,8 @@ var seed = func() int64 {
 	return time.Now().UnixNano()
 }
 
-// DAGApproximatedLearning learns a dag approximatedly from a  ktree
-func DAGApproximatedLearning(c *ctree.Ctree, rankers []score.Ranker) (bn *BNStructure) {
+// DAGapproximatedLearning learns a dag approximatedly from a  ktree
+func DAGapproximatedLearning(c *ctree.Ctree, rankers []score.Ranker) (bn *BNStructure) {
 	// Initialize the local scores for empty list of parents
 	bn = NewBNStructure()
 	parents := varset.New(len(rankers))
