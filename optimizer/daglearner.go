@@ -16,7 +16,7 @@ var seed = func() int64 {
 // DAGapproximatedLearning learns a dag approximatedly from a  ktree
 func DAGapproximatedLearning(c *ctree.Ctree, rankers []score.Ranker) (bn *BNStructure) {
 	// Initialize the local scores for empty list of parents
-	bn = NewBNStructure()
+	bn = NewBNStructure(len(rankers))
 	parents := varset.New(len(rankers))
 	for x := 0; x < len(rankers); x++ {
 		bn.SetParents(x, parents, rankers[x].ScoreOf(parents))
