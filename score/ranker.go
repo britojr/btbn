@@ -26,15 +26,16 @@ func CreateRankers(cache *Cache, maxPa int) []Ranker {
 type listRanker struct {
 	varIndex  int
 	scoreList []varsetScore
+	scoreMap  map[string]float64
 }
 
 // NewListRanker creates new listRanker
 func NewListRanker(varIndex int, cache *Cache, maxPa int) Ranker {
 	m := &listRanker{}
 	m.varIndex = varIndex
-	scoreMap := cache.Scores(varIndex)
-	m.scoreList = make([]varsetScore, 0, len(scoreMap))
-	for s, scor := range scoreMap {
+	m.scoreMap = cache.Scores(varIndex)
+	m.scoreList = make([]varsetScore, 0, len(m.scoreMap))
+	for s, scor := range m.scoreMap {
 		pset := varset.New(len(s))
 		pset.SetFromString(s)
 		if maxPa <= 0 || pset.Count() <= maxPa {
@@ -59,5 +60,5 @@ func (m *listRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr f
 }
 
 func (m *listRanker) ScoreOf(parents varset.Varset) float64 {
-	panic("not implemented")
+	return m.scoreMap[parents.DumpAsString()]
 }
