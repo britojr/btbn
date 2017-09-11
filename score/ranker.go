@@ -22,16 +22,16 @@ func CreateRankers(cache *Cache, maxPa int) []Ranker {
 	return rs
 }
 
-// listRanker trivial implementation of score ranker
-type listRanker struct {
+// ListRanker trivial implementation of score ranker
+type ListRanker struct {
 	varIndex  int
 	scoreList []varsetScore
 	scoreMap  map[string]float64
 }
 
 // NewListRanker creates new listRanker
-func NewListRanker(varIndex int, cache *Cache, maxPa int) Ranker {
-	m := &listRanker{}
+func NewListRanker(varIndex int, cache *Cache, maxPa int) *ListRanker {
+	m := &ListRanker{}
 	m.varIndex = varIndex
 	m.scoreMap = cache.Scores(varIndex)
 	m.scoreList = make([]varsetScore, 0, len(m.scoreMap))
@@ -47,7 +47,7 @@ func NewListRanker(varIndex int, cache *Cache, maxPa int) Ranker {
 }
 
 // BestIn finds the highest scoring parent set that is contained in the given restriction set
-func (m *listRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr float64) {
+func (m *ListRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr float64) {
 	if len(m.scoreList) == 0 {
 		panic(fmt.Errorf("Score list is empty"))
 	}
@@ -59,6 +59,7 @@ func (m *listRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr f
 	panic(fmt.Errorf("Can't find score for variable %v with restriction %v", m.varIndex, restric))
 }
 
-func (m *listRanker) ScoreOf(parents varset.Varset) float64 {
+// ScoreOf returns the score of a given set of parents
+func (m *ListRanker) ScoreOf(parents varset.Varset) float64 {
 	return m.scoreMap[parents.DumpAsString()]
 }
