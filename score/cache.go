@@ -2,11 +2,10 @@ package score
 
 import (
 	"bufio"
-	"log"
-	"strconv"
 	"strings"
 
 	"github.com/britojr/btbn/varset"
+	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/ioutl"
 )
 
@@ -56,11 +55,7 @@ func Read(fname string) *Cache {
 			currVar = c.varIndex[words[1]]
 			continue
 		}
-		scoreVal, err := strconv.ParseFloat(words[0], 64)
-		if err != nil {
-			log.Printf("Error trying to convert %v to float\n", words[0])
-			panic(err)
-		}
+		scoreVal := conv.Atof(words[0])
 
 		parents := varset.New(c.Nvar())
 		for i := 1; i < len(words); i++ {
