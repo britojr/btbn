@@ -17,33 +17,35 @@ type Ktree struct {
 }
 
 // Variables returns the variables of this node
-func (t *Ktree) Variables() []int {
-	panic("not implemented")
+func (tk *Ktree) Variables() []int {
+	return tk.clique
 }
 
 // Children returns the children of this node
-func (t *Ktree) Children() []*Ktree {
-	panic("not implemented")
+func (tk *Ktree) Children() []*Ktree {
+	return tk.children
 }
 
 // VarIn returns the variable that was included in this node relative to the parent node
-func (t *Ktree) VarIn() int {
-	panic("not implemented")
+func (tk *Ktree) VarIn() int {
+	return tk.vIn
 }
 
 // VarOut returns the variable that was removed from this node relative to the parent node
-func (t *Ktree) VarOut() int {
-	panic("not implemented")
+func (tk *Ktree) VarOut() int {
+	return tk.vOut
 }
 
 // UniformSample uniformly samples a ktree
 func UniformSample(n, k int) *Ktree {
 	T, iphi, err := generator.RandomCharTree(n, k)
 	errchk.Check(err, "")
-	children, cliques, varin, varout := decodeCharTree(T, iphi, n, k)
-	tk := newFromDecodedCharTree(children, cliques, varin, varout)
-	return tk
+	return newFromDecodedCharTree(decodeCharTree(T, iphi, n, k))
 }
+
+// children, cliques, varin, varout := decodeCharTree(T, iphi, n, k)
+// tk := newFromDecodedCharTree(children, cliques, varin, varout)
+// return tk
 
 func decodeCharTree(T *characteristic.Tree, iphi []int, n, k int) (
 	[][]int, [][]int, []int, []int,
@@ -65,7 +67,6 @@ func decodeCharTree(T *characteristic.Tree, iphi []int, n, k int) (
 func decodeCliqueList(T *characteristic.Tree, children [][]int, n, k int) ([][]int, []int) {
 	// Initialize auxiliar (not relabled) clique matrix with the last k variables
 	varout := make([]int, len(children))
-	varout[0] = -1
 	K := make([][]int, len(T.P))
 	K[0] = make([]int, k)
 	for i := 0; i < k; i++ {
@@ -114,29 +115,33 @@ func decodeRelable(K [][]int, varout []int, iphi []int) ([][]int, []int, []int) 
 		}
 	}
 	// relable varout
-	for i := range varout {
-		varout[i] = iphi[varout[i]-1]
+	for i, v := range varout {
+		if v > 0 {
+			varout[i] = iphi[v-1]
+		} else {
+			varout[i] = -1
+		}
 	}
 	return cliques, varin, varout
 }
 
 func newFromDecodedCharTree(children, cliques [][]int, varin []int, varout []int) *Ktree {
-	r := new(Ktree)
-	createNodes(r, 0, children, cliques, varin, varout)
-	r = removeRoot(r)
-	return r
+	tk := new(Ktree)
+	createNodes(tk, 0, children, cliques, varin, varout)
+	tk = removeRoot(tk)
+	return tk
 }
 
 func createNodes(
-	r *Ktree, i int,
+	tk *Ktree, i int,
 	children, cliques [][]int, varin []int, varout []int,
 ) {
-	r.clique = cliques[i]
-	r.vIn = varin[i]
-	r.vOut = varout[i]
+	tk.clique = cliques[i]
+	tk.vIn = varin[i]
+	tk.vOut = varout[i]
 	for _, v := range children[i] {
-		r.children = append(r.children, new(Ktree))
-		createNodes(r.children[len(r.children)-1], v, children, cliques, varin, varout)
+		tk.children = append(tk.children, new(Ktree))
+		createNodes(tk.children[len(tk.children)-1], v, children, cliques, varin, varout)
 	}
 }
 
