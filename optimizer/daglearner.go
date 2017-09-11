@@ -4,7 +4,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/britojr/btbn/ctree"
+	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/score"
 	"github.com/britojr/btbn/varset"
 )
@@ -14,7 +14,7 @@ var seed = func() int64 {
 }
 
 // DAGapproximatedLearning learns a dag approximatedly from a  ktree
-func DAGapproximatedLearning(c *ctree.Ctree, rankers []score.Ranker) (bn *BNStructure) {
+func DAGapproximatedLearning(tk *ktree.Ktree, rankers []score.Ranker) (bn *BNStructure) {
 	// Initialize the local scores for empty list of parents
 	bn = NewBNStructure(len(rankers))
 	parents := varset.New(len(rankers))
@@ -23,7 +23,7 @@ func DAGapproximatedLearning(c *ctree.Ctree, rankers []score.Ranker) (bn *BNStru
 	}
 
 	// Sample a partial order from the ktree
-	pOrders := samplePartialOrder(c, seed())
+	pOrders := samplePartialOrder(tk, seed())
 
 	// Find the parents sets that maximize the score and respect the partial order
 	for _, pOrd := range pOrders {
@@ -52,20 +52,20 @@ type partialOrder struct {
 }
 
 // samplePartialOrder samples a partial order from a ktree
-func samplePartialOrder(c *ctree.Ctree, seed int64) []partialOrder {
+func samplePartialOrder(tk *ktree.Ktree, seed int64) []partialOrder {
 	r := rand.New(rand.NewSource(seed))
 	// start partial order with a shuffle of the root node
 	po := []partialOrder{
-		partialOrder{shuffle(c.Variables(), r), 0},
+		partialOrder{shuffle(tk.Variables(), r), 0},
 	}
 	// for each children node, theres is one variable replaced relative to its parent
 	// sample a position to insert the respective variable, respecting the prevoious orders
-	sampleChildrenOrder(c, po[0].vars, r, &po)
+	sampleChildrenOrder(tk, po[0].vars, r, &po)
 	return po
 }
 
-func sampleChildrenOrder(c *ctree.Ctree, paOrder []int, r *rand.Rand, po *[]partialOrder) {
-	for _, ch := range c.Children() {
+func sampleChildrenOrder(tk *ktree.Ktree, paOrder []int, r *rand.Rand, po *[]partialOrder) {
+	for _, ch := range tk.Children() {
 		chOrder := getChildOrder(paOrder, ch.VarIn(), ch.VarOut(), r)
 		(*po) = append((*po), chOrder)
 		sampleChildrenOrder(ch, chOrder.vars, r, po)
