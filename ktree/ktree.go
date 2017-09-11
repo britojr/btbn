@@ -43,10 +43,6 @@ func UniformSample(n, k int) *Ktree {
 	return newFromDecodedCharTree(decodeCharTree(T, iphi, n, k))
 }
 
-// children, cliques, varin, varout := decodeCharTree(T, iphi, n, k)
-// tk := newFromDecodedCharTree(children, cliques, varin, varout)
-// return tk
-
 func decodeCharTree(T *characteristic.Tree, iphi []int, n, k int) (
 	[][]int, [][]int, []int, []int,
 ) {
