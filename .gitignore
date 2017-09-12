@@ -5,3 +5,6 @@
 # Unignore all dirs
 !*/
 ### Above combination will ignore all files without extension ###
+
+# Ignore parents sets scores files
+*.pss
