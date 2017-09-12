@@ -6,6 +6,7 @@ import "fmt"
 type Varset interface {
 	DumpAsString() string
 	SetFromString(s string)
+	DumpAsInts() []int
 	IsSuperSet(other Varset) bool
 	Set(i int) Varset
 	Count() int
