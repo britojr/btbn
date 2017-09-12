@@ -1,6 +1,9 @@
 package varset
 
-import "github.com/willf/bitset"
+import (
+	"github.com/britojr/utl/errchk"
+	"github.com/willf/bitset"
+)
 
 type uibset struct {
 	*bitset.BitSet
@@ -10,8 +13,10 @@ func newUibset(size int) Varset {
 	return &uibset{bitset.New(uint(size))}
 }
 
-func (b *uibset) DumpAsString() string {
-	return b.DumpAsBits()
+func (b *uibset) DumpHashString() string {
+	mbytes, err := b.MarshalBinary()
+	errchk.Check(err, "")
+	return string(mbytes)
 }
 
 func (b *uibset) DumpAsInts() []int {
@@ -23,12 +28,9 @@ func (b *uibset) DumpAsInts() []int {
 	return s
 }
 
-func (b *uibset) SetFromString(s string) {
-	for i, v := range s {
-		if v == '1' {
-			b.BitSet.Set(uint(i))
-		}
-	}
+func (b *uibset) LoadHashString(s string) Varset {
+	b.UnmarshalBinary([]byte(s))
+	return b
 }
 
 func (b *uibset) IsSuperSet(other Varset) bool {
@@ -42,4 +44,8 @@ func (b *uibset) Set(i int) Varset {
 
 func (b *uibset) Count() int {
 	return int(b.BitSet.Count())
+}
+
+func (b *uibset) Equal(other Varset) bool {
+	return b.BitSet.Equal(other.(*uibset).BitSet)
 }

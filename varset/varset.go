@@ -4,12 +4,13 @@ import "fmt"
 
 // Varset defines a variable set type
 type Varset interface {
-	DumpAsString() string
-	SetFromString(s string)
+	DumpHashString() string
+	LoadHashString(s string) Varset
 	DumpAsInts() []int
 	IsSuperSet(other Varset) bool
 	Set(i int) Varset
 	Count() int
+	Equal(other Varset) bool
 }
 
 var varsetTypeDefault = "uibset"
