@@ -52,3 +52,11 @@ func (s *SampleSearch) validate() {
 		log.Panic("Invalid treewidth! Choose values such that: n >= tw+2 and tw > 0")
 	}
 }
+
+// PrintParameters prints the algorithm's current parameters
+func (s *SampleSearch) PrintParameters() {
+	log.Printf(" ========== ALGORITHM PARAMETERS ========== \n")
+	log.Printf("number of variables: %v\n", s.nv)
+	log.Printf("treewidth: %v\n", s.tw)
+	log.Printf(" ------------------------------------------ \n")
+}

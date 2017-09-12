@@ -1,7 +1,6 @@
 package optimizer
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"time"
@@ -17,6 +16,7 @@ type Optimizer interface {
 	Search() *BNStructure
 	SetDefaultParameters()
 	SetFileParameters(parms map[string]string)
+	PrintParameters()
 }
 
 // Create creates a structure optimizer algorithm
@@ -56,8 +56,13 @@ func Search(algorithm Optimizer, numSolutions, timeAvailable int) *BNStructure {
 			if best == nil || current.Better(best) {
 				best = current
 			}
+			if remaining <= 0 {
+				log.Printf("Time out in %v iterations\n", i)
+				break
+			}
 			i++
-			if remaining <= 0 || (numSolutions > 0 && i >= numSolutions) {
+			// if remaining <= 0 || (numSolutions > 0 && i >= numSolutions) {
+			if numSolutions > 0 && i >= numSolutions {
 				break
 			}
 		}
@@ -68,12 +73,6 @@ func Search(algorithm Optimizer, numSolutions, timeAvailable int) *BNStructure {
 				best = current
 			}
 		}
-	}
-	fmt.Println(" === BEST === ")
-	if best != nil {
-		fmt.Printf("Score = %.6f\n", best.Score())
-	} else {
-		fmt.Printf("Couldn't find any solution in the given time!\n")
 	}
 	return best
 }

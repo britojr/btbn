@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"time"
 
@@ -96,13 +97,14 @@ func runStructComm() {
 }
 
 func structureLearning() {
-	log.Printf("========== STEP: STRUCTURE OPTIMIZATION ========== \n")
+	log.Printf(" ========== STEP: STRUCTURE OPTIMIZATION ========== \n")
 	log.Printf("Learning algorithm: '%v'\n", optimizerAlg)
 	log.Printf("Max. iterations: %v\n", numSolutions)
 	log.Printf("Max. time available (sec): %v\n", timeAvailable)
 	log.Printf("Pre-computed scores file: '%v'\n", scoreFile)
 	log.Printf("Parameters file: '%v'\n", parmFile)
 	log.Printf("Save solution in: '%v'\n", bnetFile)
+	log.Printf(" -------------------------------------------------- \n")
 
 	log.Println("Reading score cache")
 	scoreCache := score.Read(scoreFile)
@@ -115,7 +117,7 @@ func structureLearning() {
 
 	log.Println("Creating bounded-treewidth structure learning algorithm")
 	algorithm := optimizer.Create(optimizerAlg, scoreRankers, parmFile)
-	// algorithm.PrintParameters()
+	algorithm.PrintParameters()
 
 	log.Println("Searching bounded-treewidth structure")
 	start := time.Now()
@@ -124,9 +126,16 @@ func structureLearning() {
 
 	totScore := solution.Score()
 	empScore := emptySetScore(scoreRankers)
-	log.Printf("Time: %v, Total score: %v, Normalized: %v\n",
-		elapsed, totScore, empScore,
-	)
+	log.Printf(" ========== SOLUTION ============================ \n")
+	if solution == nil {
+		log.Printf("Couldn't find any solution in the given time!\n")
+	} else {
+		log.Printf("Time: %v\n", elapsed)
+		log.Printf("Best Score: %.6f\n", totScore)
+		log.Printf("Normalized: %.6f\n", (totScore-empScore)/math.Abs(empScore))
+	}
+	log.Printf(" -------------------------------------------------- \n")
+
 	writeSolution(bnetFile, solution)
 }
 
