@@ -67,7 +67,7 @@ func Read(fname string) *Cache {
 }
 
 func (c *Cache) putScore(v int, parents varset.Varset, scoreVal float64) {
-	c.caches[v][parents.DumpAsString()] = scoreVal
+	c.caches[v][parents.DumpHashString()] = scoreVal
 }
 
 // Nvar returns the number of variables

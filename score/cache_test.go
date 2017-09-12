@@ -47,8 +47,8 @@ func TestScores(t *testing.T) {
 			for _, v := range px.vars {
 				parents.Set(v)
 			}
-			if px.scor != scoreMap[parents.DumpAsString()] {
-				t.Errorf("wrong scores (%v)!=(%v)", px.scor, scoreMap[parents.DumpAsString()])
+			if px.scor != scoreMap[parents.DumpHashString()] {
+				t.Errorf("wrong scores (%v)!=(%v)", px.scor, scoreMap[parents.DumpHashString()])
 			}
 		}
 	}

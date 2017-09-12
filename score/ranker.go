@@ -36,8 +36,8 @@ func NewListRanker(varIndex int, cache *Cache, maxPa int) *ListRanker {
 	m.scoreMap = cache.Scores(varIndex)
 	m.scoreList = make([]varsetScore, 0, len(m.scoreMap))
 	for s, scor := range m.scoreMap {
-		pset := varset.New(len(s))
-		pset.SetFromString(s)
+		pset := varset.New(cache.Nvar())
+		pset.LoadHashString(s)
 		if maxPa <= 0 || pset.Count() <= maxPa {
 			m.scoreList = append(m.scoreList, varsetScore{scor, pset})
 		}
@@ -61,5 +61,5 @@ func (m *ListRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr f
 
 // ScoreOf returns the score of a given set of parents
 func (m *ListRanker) ScoreOf(parents varset.Varset) float64 {
-	return m.scoreMap[parents.DumpAsString()]
+	return m.scoreMap[parents.DumpHashString()]
 }
