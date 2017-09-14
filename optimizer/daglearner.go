@@ -23,7 +23,7 @@ func DAGapproximatedLearning(tk *ktree.Ktree, rankers []score.Ranker) (bn *BNStr
 	}
 
 	// Sample a partial order from the ktree
-	pOrders := samplePartialOrder(tk, seed())
+	pOrders := samplePartialOrder(tk)
 
 	// Find the parents sets that maximize the score and respect the partial order
 	for _, pOrd := range pOrders {
@@ -52,8 +52,8 @@ type partialOrder struct {
 }
 
 // samplePartialOrder samples a partial order from a ktree
-func samplePartialOrder(tk *ktree.Ktree, seed int64) []partialOrder {
-	r := rand.New(rand.NewSource(seed))
+func samplePartialOrder(tk *ktree.Ktree) []partialOrder {
+	r := rand.New(rand.NewSource(seed()))
 	// start partial order with a shuffle of the root node
 	po := []partialOrder{
 		partialOrder{shuffle(tk.Variables(), r), 0},
