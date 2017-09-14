@@ -31,6 +31,8 @@ func Create(optimizerAlg string, scoreRankers []score.Ranker, parmFile string) (
 	switch optimizerAlg {
 	case AlgSampleSearch:
 		opt = NewSampleSearch(scoreRankers, parmFile)
+	case AlgSelectedSample:
+		opt = NewSelectSampleSearch(scoreRankers, parmFile)
 	default:
 		log.Panicf("invalid algorithm option: '%v'", optimizerAlg)
 	}
