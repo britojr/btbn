@@ -2,11 +2,15 @@ package optimizer
 
 import (
 	"log"
+	"math"
+	"math/rand"
 
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/score"
 	"github.com/britojr/tcc/codec"
+	"github.com/britojr/tcc/generator"
 	"github.com/britojr/utl/conv"
+	"github.com/britojr/utl/errchk"
 )
 
 // SelectSampleSearch implements the select sampling strategy
@@ -15,9 +19,11 @@ type SelectSampleSearch struct {
 	nv           int            // number of variables
 	tw           int            // treewidth
 	prevCodes    []*codec.Code  // previously accepted codes
-	bestTk       *ktree.Ktree   // currently best scoring tree
+	bestIScr     float64        // currently best IScore
 	numTrees     int            // number of ktrees to sample before start learning DAG
 	tkList       []*ktree.Ktree // list of accepted ktrees
+
+	kernelZero float64
 }
 
 // NewSelectSampleSearch creates a instance of the sample stragegy
@@ -27,17 +33,18 @@ func NewSelectSampleSearch(scoreRankers []score.Ranker, parmFile string) *Select
 	s.nv = len(s.scoreRankers)
 	setParameters(s, parmFile)
 	s.validate()
+	s.kernelZero = GaussianKernel(0.0)
 	return s
 }
 
 // Search searchs for a network structure
 func (s *SelectSampleSearch) Search() *BNStructure {
 	if len(s.tkList) == 0 {
+		s.tkList = make([]*ktree.Ktree, 0, s.numTrees)
 		s.selectKTrees()
 	}
-	tk := s.tkList[0]
+	bn := DAGapproximatedLearning(s.tkList[0], s.scoreRankers)
 	s.tkList = s.tkList[1:]
-	bn := DAGapproximatedLearning(tk, s.scoreRankers)
 	return bn
 }
 
@@ -76,8 +83,77 @@ func (s *SelectSampleSearch) PrintParameters() {
 
 // selectKTrees samples and selects a given number of ktrees
 func (s *SelectSampleSearch) selectKTrees() {
-	s.tkList = make([]*ktree.Ktree, s.numTrees)
-	for i := range s.tkList {
-		s.tkList[i] = ktree.UniformSample(s.nv, s.tw)
+	r := rand.New(rand.NewSource(seed()))
+	for len(s.tkList) < s.numTrees {
+		C, err := generator.RandomCode(s.nv, s.tw)
+		errchk.Check(err, "")
+		if !s.acceptCode(C, r) {
+			continue
+		}
+		tk := ktree.FromCode(C)
+		if !s.acceptTree(tk, r) {
+			continue
+		}
+		s.tkList = append(s.tkList, tk)
 	}
+}
+
+func (s *SelectSampleSearch) acceptTree(tk *ktree.Ktree, r *rand.Rand) bool {
+	iscr := s.computeIScore(tk)
+	if iscr > s.bestIScr {
+		s.bestIScr = iscr
+		return true
+	}
+	return r.Float64() <= (iscr / s.bestIScr)
+}
+
+func (s *SelectSampleSearch) computeIScore(tk *ktree.Ktree) float64 {
+	panic("not implemented")
+}
+
+// acceptCode stochastically accepts a Dandelion code
+func (s *SelectSampleSearch) acceptCode(C *codec.Code, r *rand.Rand) bool {
+	// If not the first code, compute the probability of accepting
+	if len(s.prevCodes) != 0 {
+		if r.Float64() > s.acceptCodeProb(C) {
+			return false
+		}
+	}
+	s.prevCodes = append(s.prevCodes, C)
+	return true
+}
+
+// acceptCodeProb calculates the probability of accepting a code
+// based on its distance from the previous ones
+func (s *SelectSampleSearch) acceptCodeProb(C *codec.Code) float64 {
+	q := float64(0)
+	for _, prevCode := range s.prevCodes {
+		q += GaussianKernel(CodeDistance(C, prevCode))
+	}
+	q /= float64(len(s.prevCodes))
+	return 1.0 - (q / s.kernelZero)
+}
+
+// GaussianKernel calculates the Gaussian Kernel of a value
+// TODO: move to a stats package / check if there is one already
+func GaussianKernel(u float64) float64 {
+	return (1 / math.Sqrt(2*math.Pi)) * math.Pow(math.E, -u*u*0.5)
+}
+
+// CodeDistance calculates the distance between two dandelion codes
+func CodeDistance(C1, C2 *codec.Code) float64 {
+	//TODO: Check this formula/ check if there is a function to compute this norms
+	// ||C1-C2|| = ||C1.Q - C2.Q||_2 + ||C1.S - C2.S||_2,1
+	dq := float64(0)
+	for i := 0; i < len(C1.Q); i++ {
+		dq += math.Pow(float64(C1.Q[i]-C2.Q[i]), 2)
+	}
+	dq = math.Sqrt(dq)
+	dp, dl := float64(0), float64(0)
+	for i := 0; i < len(C1.S.P); i++ {
+		dp += math.Pow(float64(C1.S.P[i]-C2.S.P[i]), 2)
+		dl += math.Pow(float64(C1.S.L[i]-C2.S.L[i]), 2)
+	}
+	dp, dl = math.Sqrt(dp), math.Sqrt(dl)
+	return dq + dp + dl
 }
