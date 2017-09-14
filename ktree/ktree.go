@@ -4,7 +4,9 @@ import (
 	"sort"
 
 	"github.com/britojr/tcc/characteristic"
+	"github.com/britojr/tcc/codec"
 	"github.com/britojr/tcc/generator"
+	"github.com/britojr/tcc/ktree"
 	"github.com/britojr/utl/errchk"
 )
 
@@ -40,6 +42,19 @@ func (tk *Ktree) VarOut() int {
 func UniformSample(n, k int) *Ktree {
 	T, iphi, err := generator.RandomCharTree(n, k)
 	errchk.Check(err, "")
+	return newFromDecodedCharTree(decodeCharTree(T, iphi, n, k))
+}
+
+// FromCode creates a ktree from a given code
+func FromCode(C *codec.Code) *Ktree {
+	// Decode a characteristic tree
+	T, err := codec.DecodingCharTree(C)
+	errchk.Check(err, "")
+	// Calculate inverse phi for relabeling
+	k := len(C.Q)
+	n := k + len(T.P) - 1
+	iphi := ktree.GetInverse(ktree.ComputePhi(n, k, C.Q))
+
 	return newFromDecodedCharTree(decodeCharTree(T, iphi, n, k))
 }
 
