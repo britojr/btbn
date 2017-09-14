@@ -11,6 +11,13 @@ import (
 	"github.com/britojr/utl/errchk"
 )
 
+// Define search algorithms names
+const (
+	AlgSampleSearch   = "sample"    // n14
+	AlgSelectedSample = "selected"  // n15
+	AlgIterativeBuild = "iterative" // n16
+)
+
 // Optimizer defines a structure optimizer algorithm
 type Optimizer interface {
 	Search() *BNStructure
@@ -22,8 +29,8 @@ type Optimizer interface {
 // Create creates a structure optimizer algorithm
 func Create(optimizerAlg string, scoreRankers []score.Ranker, parmFile string) (opt Optimizer) {
 	switch optimizerAlg {
-	case "sample":
-		opt = newSampleSearch(scoreRankers, parmFile)
+	case AlgSampleSearch:
+		opt = NewSampleSearch(scoreRankers, parmFile)
 	default:
 		log.Panicf("invalid algorithm option: '%v'", optimizerAlg)
 	}

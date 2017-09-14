@@ -16,7 +16,7 @@ type SampleSearch struct {
 }
 
 // NewSampleSearch creates a instance of the sample stragegy
-func newSampleSearch(scoreRankers []score.Ranker, parmFile string) *SampleSearch {
+func NewSampleSearch(scoreRankers []score.Ranker, parmFile string) *SampleSearch {
 	s := new(SampleSearch)
 	s.scoreRankers = scoreRankers
 	s.nv = len(s.scoreRankers)
