@@ -16,13 +16,13 @@ import (
 
 // SelectSampleSearch implements the select sampling strategy
 type SelectSampleSearch struct {
-	scoreRankers []scr.Ranker   // score rankers for each variable
-	nv           int            // number of variables
-	tw           int            // treewidth
-	prevCodes    []*codec.Code  // previously accepted codes
-	bestIScr     float64        // currently best IScore
-	numTrees     int            // number of ktrees to sample before start learning DAG
-	tkList       []*ktree.Ktree // list of accepted ktrees
+	scoreRankers []scr.Ranker  // score rankers for each variable
+	nv           int           // number of variables
+	tw           int           // treewidth
+	prevCodes    []*codec.Code // previously accepted codes
+	bestIScr     float64       // currently best IScore
+	numTrees     int           // number of ktrees to sample before start learning DAG
+	tkList       []*scr.Record // list of accepted ktrees sorted by score
 
 	kernelZero float64 // pre-calculated kernel(0)
 }
@@ -43,7 +43,7 @@ func (s *SelectSampleSearch) Search() *BNStructure {
 	if len(s.tkList) == 0 {
 		s.selectKTrees()
 	}
-	bn := DAGapproximatedLearning(s.tkList[0], s.scoreRankers)
+	bn := DAGapproximatedLearning(s.tkList[0].Data().(*ktree.Ktree), s.scoreRankers)
 	s.tkList = s.tkList[1:]
 	return bn
 }
@@ -84,7 +84,7 @@ func (s *SelectSampleSearch) PrintParameters() {
 // selectKTrees samples and selects a given number of ktrees
 func (s *SelectSampleSearch) selectKTrees() {
 	r := rand.New(rand.NewSource(seed()))
-	s.tkList = make([]*ktree.Ktree, 0, s.numTrees)
+	s.tkList = make([]*scr.Record, 0, s.numTrees)
 	for len(s.tkList) < s.numTrees {
 		C, err := generator.RandomCode(s.nv, s.tw)
 		errchk.Check(err, "")
@@ -92,16 +92,17 @@ func (s *SelectSampleSearch) selectKTrees() {
 			continue
 		}
 		tk := ktree.FromCode(C)
-		if !s.acceptTree(tk, r) {
+		iscr := s.computeIScore(tk)
+		if !s.acceptTree(tk, iscr, r) {
 			continue
 		}
-		s.tkList = append(s.tkList, tk)
+		s.tkList = append(s.tkList, scr.NewRecord(iscr, tk))
 	}
 	// TODO: needs to sort by decreasing IScore, use a pair <float64, interface{}>
+	scr.SortRecords(s.tkList)
 }
 
-func (s *SelectSampleSearch) acceptTree(tk *ktree.Ktree, r *rand.Rand) bool {
-	iscr := s.computeIScore(tk)
+func (s *SelectSampleSearch) acceptTree(tk *ktree.Ktree, iscr float64, r *rand.Rand) bool {
 	if iscr > s.bestIScr {
 		s.bestIScr = iscr
 		return true
