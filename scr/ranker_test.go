@@ -29,7 +29,7 @@ func TestScoreOf(t *testing.T) {
 		{"scorefile.test", 0, 0, []int{1, 2}, -6},
 
 		{"scorefile.test", 0, 2, []int{}, -10},
-		{"scorefile.test", 0, 2, []int{0}, -10},
+		{"scorefile.test", 0, 2, []int{0}, -10.1},
 		{"scorefile.test", 0, 2, []int{1}, -2},
 		{"scorefile.test", 0, 2, []int{0, 1}, -1},
 	}

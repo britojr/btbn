@@ -32,7 +32,7 @@ func TestScores(t *testing.T) {
 				scor float64
 			}{
 				{[]int{}, -10},
-				{[]int{0}, -10},
+				{[]int{0}, -10.1},
 				{[]int{1}, -2},
 				{[]int{0, 1}, -1},
 			},
