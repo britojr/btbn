@@ -24,7 +24,7 @@ func CreateRankers(cache *Cache, maxPa int) []Ranker {
 // ListRanker trivial implementation of score ranker
 type ListRanker struct {
 	varIndex  int
-	scoreList []Record
+	scoreList []*Record
 	scoreMap  map[string]float64
 }
 
@@ -33,15 +33,15 @@ func NewListRanker(varIndex int, cache *Cache, maxPa int) *ListRanker {
 	m := &ListRanker{}
 	m.varIndex = varIndex
 	m.scoreMap = cache.Scores(varIndex)
-	m.scoreList = make([]Record, 0, len(m.scoreMap))
+	m.scoreList = make([]*Record, 0, len(m.scoreMap))
 	for s, scor := range m.scoreMap {
 		pset := varset.New(cache.Nvar())
 		pset.LoadHashString(s)
 		if maxPa <= 0 || pset.Count() <= maxPa {
-			m.scoreList = append(m.scoreList, Record{scor, pset})
+			m.scoreList = append(m.scoreList, NewRecord(scor, pset))
 		}
 	}
-	SortRecord(m.scoreList)
+	SortRecords(m.scoreList)
 	return m
 }
 
@@ -51,7 +51,7 @@ func (m *ListRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr f
 		panic(fmt.Errorf("Score list is empty"))
 	}
 	for _, v := range m.scoreList {
-		parents = v.data.(varset.Varset)
+		parents = v.Data().(varset.Varset)
 		if restric.IsSuperSet(parents) {
 			return parents, v.score
 		}
