@@ -24,7 +24,7 @@ type SelectSampleSearch struct {
 	numTrees     int            // number of ktrees to sample before start learning DAG
 	tkList       []*ktree.Ktree // list of accepted ktrees
 
-	kernelZero float64
+	kernelZero float64 // pre-calculated kernel(0)
 }
 
 // NewSelectSampleSearch creates a instance of the sample stragegy

@@ -2,7 +2,6 @@ package scr
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/britojr/btbn/varset"
 )
@@ -25,7 +24,7 @@ func CreateRankers(cache *Cache, maxPa int) []Ranker {
 // ListRanker trivial implementation of score ranker
 type ListRanker struct {
 	varIndex  int
-	scoreList []varsetScore
+	scoreList []Record
 	scoreMap  map[string]float64
 }
 
@@ -34,15 +33,15 @@ func NewListRanker(varIndex int, cache *Cache, maxPa int) *ListRanker {
 	m := &ListRanker{}
 	m.varIndex = varIndex
 	m.scoreMap = cache.Scores(varIndex)
-	m.scoreList = make([]varsetScore, 0, len(m.scoreMap))
+	m.scoreList = make([]Record, 0, len(m.scoreMap))
 	for s, scor := range m.scoreMap {
 		pset := varset.New(cache.Nvar())
 		pset.LoadHashString(s)
 		if maxPa <= 0 || pset.Count() <= maxPa {
-			m.scoreList = append(m.scoreList, varsetScore{scor, pset})
+			m.scoreList = append(m.scoreList, Record{scor, pset})
 		}
 	}
-	sort.Sort(varsetScores(m.scoreList))
+	SortRecord(m.scoreList)
 	return m
 }
 
@@ -52,8 +51,9 @@ func (m *ListRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr f
 		panic(fmt.Errorf("Score list is empty"))
 	}
 	for _, v := range m.scoreList {
-		if restric.IsSuperSet(v.vars) {
-			return v.vars, v.scor
+		parents = v.data.(varset.Varset)
+		if restric.IsSuperSet(parents) {
+			return parents, v.score
 		}
 	}
 	panic(fmt.Errorf("Can't find score for variable %v with restriction %v", m.varIndex, restric))
