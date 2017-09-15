@@ -40,7 +40,6 @@ func NewSelectSampleSearch(scoreRankers []score.Ranker, parmFile string) *Select
 // Search searchs for a network structure
 func (s *SelectSampleSearch) Search() *BNStructure {
 	if len(s.tkList) == 0 {
-		s.tkList = make([]*ktree.Ktree, 0, s.numTrees)
 		s.selectKTrees()
 	}
 	bn := DAGapproximatedLearning(s.tkList[0], s.scoreRankers)
@@ -84,6 +83,7 @@ func (s *SelectSampleSearch) PrintParameters() {
 // selectKTrees samples and selects a given number of ktrees
 func (s *SelectSampleSearch) selectKTrees() {
 	r := rand.New(rand.NewSource(seed()))
+	s.tkList = make([]*ktree.Ktree, 0, s.numTrees)
 	for len(s.tkList) < s.numTrees {
 		C, err := generator.RandomCode(s.nv, s.tw)
 		errchk.Check(err, "")
@@ -96,6 +96,7 @@ func (s *SelectSampleSearch) selectKTrees() {
 		}
 		s.tkList = append(s.tkList, tk)
 	}
+	// TODO: needs to sort by decreasing IScore, use a pair <float64, interface{}>
 }
 
 func (s *SelectSampleSearch) acceptTree(tk *ktree.Ktree, r *rand.Rand) bool {
