@@ -41,6 +41,10 @@ func (b *uibset) Set(i int) Varset {
 	b.BitSet.Set(uint(i))
 	return b
 }
+func (b *uibset) Clear(i int) Varset {
+	b.BitSet.Clear(uint(i))
+	return b
+}
 
 func (b *uibset) Count() int {
 	return int(b.BitSet.Count())

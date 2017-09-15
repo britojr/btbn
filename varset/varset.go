@@ -9,6 +9,7 @@ type Varset interface {
 	DumpAsInts() []int
 	IsSuperSet(other Varset) bool
 	Set(i int) Varset
+	Clear(i int) Varset
 	Count() int
 	Equal(other Varset) bool
 }
