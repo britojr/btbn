@@ -7,7 +7,7 @@ import (
 
 	yaml "gopkg.in/yaml.v2"
 
-	"github.com/britojr/btbn/score"
+	"github.com/britojr/btbn/scr"
 	"github.com/britojr/utl/errchk"
 )
 
@@ -27,7 +27,7 @@ type Optimizer interface {
 }
 
 // Create creates a structure optimizer algorithm
-func Create(optimizerAlg string, scoreRankers []score.Ranker, parmFile string) (opt Optimizer) {
+func Create(optimizerAlg string, scoreRankers []scr.Ranker, parmFile string) (opt Optimizer) {
 	switch optimizerAlg {
 	case AlgSampleSearch:
 		opt = NewSampleSearch(scoreRankers, parmFile)

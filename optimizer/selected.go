@@ -6,7 +6,7 @@ import (
 	"math/rand"
 
 	"github.com/britojr/btbn/ktree"
-	"github.com/britojr/btbn/score"
+	"github.com/britojr/btbn/scr"
 	"github.com/britojr/tcc/codec"
 	"github.com/britojr/tcc/generator"
 	"github.com/britojr/utl/conv"
@@ -15,7 +15,7 @@ import (
 
 // SelectSampleSearch implements the select sampling strategy
 type SelectSampleSearch struct {
-	scoreRankers []score.Ranker // score rankers for each variable
+	scoreRankers []scr.Ranker   // score rankers for each variable
 	nv           int            // number of variables
 	tw           int            // treewidth
 	prevCodes    []*codec.Code  // previously accepted codes
@@ -27,7 +27,7 @@ type SelectSampleSearch struct {
 }
 
 // NewSelectSampleSearch creates a instance of the sample stragegy
-func NewSelectSampleSearch(scoreRankers []score.Ranker, parmFile string) *SelectSampleSearch {
+func NewSelectSampleSearch(scoreRankers []scr.Ranker, parmFile string) *SelectSampleSearch {
 	s := new(SelectSampleSearch)
 	s.scoreRankers = scoreRankers
 	s.nv = len(s.scoreRankers)

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/britojr/btbn/optimizer"
-	"github.com/britojr/btbn/score"
+	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
 )
 
@@ -107,11 +107,11 @@ func structureLearning() {
 	log.Printf(" -------------------------------------------------- \n")
 
 	log.Println("Reading score cache")
-	scoreCache := score.Read(scoreFile)
+	scoreCache := scr.Read(scoreFile)
 
 	log.Println("Creating score rankers")
-	// scoreRankers := score.CreateRankers(scoreRankType, scoreCache, maxPa)
-	scoreRankers := score.CreateRankers(scoreCache, maxPa)
+	// scoreRankers := scr.CreateRankers(scoreRankType, scoreCache, maxPa)
+	scoreRankers := scr.CreateRankers(scoreCache, maxPa)
 	// TODO: may need to load a pre-computed mutual information file
 	// TODO: dataset will also be nedded when dealing with hidden variables
 
@@ -145,7 +145,7 @@ func writeSolution(fname string, bn *optimizer.BNStructure) {
 }
 
 // emptySetScore calculates the total score for when the parents sets are empty
-func emptySetScore(rankers []score.Ranker) (es float64) {
+func emptySetScore(rankers []scr.Ranker) (es float64) {
 	parents := varset.New(len(rankers))
 	for _, ranker := range rankers {
 		es += ranker.ScoreOf(parents)

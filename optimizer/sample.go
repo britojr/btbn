@@ -4,19 +4,19 @@ import (
 	"log"
 
 	"github.com/britojr/btbn/ktree"
-	"github.com/britojr/btbn/score"
+	"github.com/britojr/btbn/scr"
 	"github.com/britojr/utl/conv"
 )
 
 // SampleSearch implements the sampling strategy
 type SampleSearch struct {
-	tw           int            //treewidth
-	nv           int            // number of variables
-	scoreRankers []score.Ranker // score rankers for each variable
+	tw           int          //treewidth
+	nv           int          // number of variables
+	scoreRankers []scr.Ranker // score rankers for each variable
 }
 
 // NewSampleSearch creates a instance of the sample stragegy
-func NewSampleSearch(scoreRankers []score.Ranker, parmFile string) *SampleSearch {
+func NewSampleSearch(scoreRankers []scr.Ranker, parmFile string) *SampleSearch {
 	s := new(SampleSearch)
 	s.scoreRankers = scoreRankers
 	s.nv = len(s.scoreRankers)

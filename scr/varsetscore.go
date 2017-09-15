@@ -1,4 +1,4 @@
-package score
+package scr
 
 import "github.com/britojr/btbn/varset"
 

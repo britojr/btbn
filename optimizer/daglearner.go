@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/britojr/btbn/ktree"
-	"github.com/britojr/btbn/score"
+	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
 )
 
@@ -14,7 +14,7 @@ var seed = func() int64 {
 }
 
 // DAGapproximatedLearning learns a dag approximatedly from a  ktree
-func DAGapproximatedLearning(tk *ktree.Ktree, rankers []score.Ranker) (bn *BNStructure) {
+func DAGapproximatedLearning(tk *ktree.Ktree, rankers []scr.Ranker) (bn *BNStructure) {
 	// Initialize the local scores for empty list of parents
 	bn = NewBNStructure(len(rankers))
 	parents := varset.New(len(rankers))
@@ -32,7 +32,7 @@ func DAGapproximatedLearning(tk *ktree.Ktree, rankers []score.Ranker) (bn *BNStr
 	return bn
 }
 
-func setParentsFromOrder(order partialOrder, rankers []score.Ranker, bn *BNStructure) {
+func setParentsFromOrder(order partialOrder, rankers []scr.Ranker, bn *BNStructure) {
 	restric := varset.New(len(rankers))
 	for _, v := range order.vars[:order.ini] {
 		restric.Set(v)
