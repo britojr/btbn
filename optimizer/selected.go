@@ -11,6 +11,7 @@ import (
 	"github.com/britojr/tcc/generator"
 	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/errchk"
+	"github.com/britojr/utl/stats"
 )
 
 // SelectSampleSearch implements the select sampling strategy
@@ -33,7 +34,7 @@ func NewSelectSampleSearch(scoreRankers []scr.Ranker, parmFile string) *SelectSa
 	s.nv = len(s.scoreRankers)
 	setParameters(s, parmFile)
 	s.validate()
-	s.kernelZero = GaussianKernel(0.0)
+	s.kernelZero = stats.GaussianKernel(0.0)
 	return s
 }
 
@@ -129,32 +130,17 @@ func (s *SelectSampleSearch) acceptCode(C *codec.Code, r *rand.Rand) bool {
 func (s *SelectSampleSearch) acceptCodeProb(C *codec.Code) float64 {
 	q := float64(0)
 	for _, prevCode := range s.prevCodes {
-		q += GaussianKernel(CodeDistance(C, prevCode))
+		q += stats.GaussianKernel(CodeDistance(C, prevCode))
 	}
 	q /= float64(len(s.prevCodes))
 	return 1.0 - (q / s.kernelZero)
 }
 
-// GaussianKernel calculates the Gaussian Kernel of a value
-// TODO: move to a stats package / check if there is one already
-func GaussianKernel(u float64) float64 {
-	return (1 / math.Sqrt(2*math.Pi)) * math.Pow(math.E, -u*u*0.5)
-}
-
-// CodeDistance calculates the distance between two dandelion codes
+// CodeDistance calculates the distance between two dandelion codes:
+//		||C1-C2|| = ||C1.Q - C2.Q||_2 + ||C1.S - C2.S||_2,1
 func CodeDistance(C1, C2 *codec.Code) float64 {
-	//TODO: Check this formula/ check if there is a function to compute this norms
-	// ||C1-C2|| = ||C1.Q - C2.Q||_2 + ||C1.S - C2.S||_2,1
-	dq := float64(0)
-	for i := 0; i < len(C1.Q); i++ {
-		dq += math.Pow(float64(C1.Q[i]-C2.Q[i]), 2)
-	}
-	dq = math.Sqrt(dq)
-	dp, dl := float64(0), float64(0)
-	for i := 0; i < len(C1.S.P); i++ {
-		dp += math.Pow(float64(C1.S.P[i]-C2.S.P[i]), 2)
-		dl += math.Pow(float64(C1.S.L[i]-C2.S.L[i]), 2)
-	}
-	dp, dl = math.Sqrt(dp), math.Sqrt(dl)
-	return dq + dp + dl
+	dq := stats.IntsLNormDiff(C1.Q, C2.Q, 2)
+	dp := stats.IntsLNormDiff(C1.S.P, C2.S.P, 2)
+	dl := stats.IntsLNormDiff(C1.S.L, C2.S.L, 2)
+	return dq + math.Abs(dp-dl)
 }
