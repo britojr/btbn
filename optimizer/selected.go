@@ -7,22 +7,26 @@ import (
 
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
+	"github.com/britojr/btbn/varset"
 	"github.com/britojr/tcc/codec"
 	"github.com/britojr/tcc/generator"
 	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/errchk"
+	"github.com/britojr/utl/floats"
 	"github.com/britojr/utl/stats"
 )
 
 // SelectSampleSearch implements the select sampling strategy
 type SelectSampleSearch struct {
-	scoreRankers []scr.Ranker  // score rankers for each variable
-	nv           int           // number of variables
-	tw           int           // treewidth
-	prevCodes    []*codec.Code // previously accepted codes
-	bestIScr     float64       // currently best IScore
-	numTrees     int           // number of ktrees to sample before start learning DAG
-	tkList       []*scr.Record // list of accepted ktrees sorted by score
+	scoreRankers []scr.Ranker // score rankers for each variable
+	nv           int          // number of variables
+	tw           int          // treewidth
+
+	prevCodes []*codec.Code // previously accepted codes
+	bestIScr  float64       // currently best IScore
+	numTrees  int           // number of ktrees to sample before start learning DAG
+	tkList    []*scr.Record // list of accepted ktrees sorted by score
+	mutInfo   *scr.MutInfo  // pre-computed mutual information matrix
 
 	kernelZero float64 // pre-calculated kernel(0)
 }
@@ -71,6 +75,9 @@ func (s *SelectSampleSearch) validate() {
 		log.Printf("n=%v, tw=%v\n", s.nv, s.tw)
 		log.Panic("Invalid treewidth! Choose values such that: n >= tw+2 and tw > 0")
 	}
+	if s.mutInfo == nil {
+		log.Panic("Mutual information missing")
+	}
 }
 
 // PrintParameters prints the algorithm's current parameters
@@ -111,7 +118,34 @@ func (s *SelectSampleSearch) acceptTree(tk *ktree.Ktree, iscr float64, r *rand.R
 }
 
 func (s *SelectSampleSearch) computeIScore(tk *ktree.Ktree) float64 {
-	panic("not implemented")
+	var mi float64
+	partialScores := make([]float64, s.nv)
+	restric := varset.New(s.nv)
+	for _, v := range tk.Variables() {
+		restric.Set(v)
+	}
+	queue := []*ktree.Ktree{tk}
+	for len(queue) > 0 {
+		r := queue[0]
+		u := r.VarIn()
+		if u >= 0 {
+			restric.Set(u)
+			restric.Clear(r.VarOut())
+		} else {
+			u = r.Variables()[0]
+		}
+		for _, v := range r.Variables() {
+			if v != u {
+				mi += s.mutInfo.Get(u, v)
+			}
+			_, newScore := s.scoreRankers[v].BestIn(restric)
+			if newScore > partialScores[v] {
+				partialScores[v] = newScore
+			}
+		}
+		queue = append(queue[1:], r.Children()...)
+	}
+	return mi / math.Abs(floats.Sum(partialScores))
 }
 
 // acceptCode stochastically accepts a Dandelion code
