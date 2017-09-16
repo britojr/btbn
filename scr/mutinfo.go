@@ -2,6 +2,8 @@ package scr
 
 import (
 	"bufio"
+	"fmt"
+	"math"
 	"strings"
 
 	"github.com/britojr/utl/conv"
@@ -14,11 +16,22 @@ type MutInfo struct {
 }
 
 // Get returns the mutual information of a given pair of variables
-func (m MutInfo) Get(i, j int) float64 {
-	if i > j {
+func (m *MutInfo) Get(i, j int) float64 {
+	if i < j {
 		return m.mat[i][j]
 	}
 	return m.mat[j][i]
+}
+
+// Write writes mutual information on file
+func (m *MutInfo) Write(fname string) {
+	f := ioutl.CreateFile(fname)
+	defer f.Close()
+	for i := range m.mat {
+		for j := 0; j <= i; j++ {
+			fmt.Fprintf(f, "%v ", m.mat[i][j])
+		}
+	}
 }
 
 // ReadMutInfo reads a mutual information file
@@ -32,6 +45,71 @@ func ReadMutInfo(fname string) *MutInfo {
 		line := conv.Satof(strings.Fields(scanner.Text()))
 		mat = append(mat, line)
 	}
+	m := new(MutInfo)
+	m.mat = mat
+	return m
+}
+
+// ComputeFromDataset reads a dataset and computes mutual information
+func ComputeFromDataset(fname string) *MutInfo {
+	f := ioutl.OpenFile(fname)
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+
+	var (
+		N   int
+		mx  [][]int     // individual count
+		mxy [][][][]int // pair count
+		mat [][]float64 // pair mutual information
+	)
+	for scanner.Scan() {
+		N++
+		line := conv.Satoi(strings.Fields(scanner.Text()))
+		if N == 1 {
+			mat = make([][]float64, len(line))
+			mx = make([][]int, len(line))
+			mxy = make([][][][]int, len(line))
+			for i := range line {
+				mxy[i] = make([][][]int, i+1)
+				mat[i] = make([]float64, i+1)
+			}
+		}
+		for i := range line {
+			for len(mx[i]) <= line[i] {
+				mx[i] = append(mx[i], 0)
+			}
+			mx[i][line[i]]++
+			for j := 0; j < i; j++ {
+				for len(mxy[i][j]) <= line[i] {
+					mxy[i][j] = append(mxy[i][j], []int{})
+				}
+				for len(mxy[i][j][line[i]]) <= line[j] {
+					mxy[i][j][line[i]] = append(mxy[i][j][line[i]], 0)
+				}
+				mxy[i][j][line[i]][line[j]]++
+			}
+		}
+	}
+	logN := math.Log(float64(N))
+	hx := make([]float64, len(mx))
+	for i := range mx {
+		for k := range mx[i] {
+			hx[i] += float64(mx[i][k]) * math.Log(float64(mx[i][k]))
+		}
+	}
+	for i := range mxy {
+		for j := 0; j < i; j++ {
+			hij := float64(0)
+			for u := range mxy[i][j] {
+				for v := range mxy[i][j][u] {
+					hij += float64(mxy[i][j][u][v]) * math.Log(float64(mxy[i][j][u][v]))
+				}
+			}
+			mat[i][j] = (-hij + hx[i] + hx[j]) * logN
+		}
+		mat[i][i] = hx[i] * logN
+	}
+
 	m := new(MutInfo)
 	m.mat = mat
 	return m
