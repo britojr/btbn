@@ -20,10 +20,15 @@ type MutInfo struct {
 
 // Get returns the mutual information of a given pair of variables
 func (m *MutInfo) Get(i, j int) float64 {
-	if i < j {
+	if i > j {
 		return m.mat[i][j]
 	}
 	return m.mat[j][i]
+}
+
+// NVar returns the number of variables
+func (m *MutInfo) NVar() int {
+	return len(m.mat)
 }
 
 // Write writes mutual information on file
