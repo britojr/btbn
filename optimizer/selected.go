@@ -145,7 +145,7 @@ func (s *SelectSampleSearch) computeIScore(tk *ktree.Ktree) float64 {
 				mi += s.mutInfo.Get(u, v)
 			}
 			_, newScore := s.scoreRankers[v].BestIn(restric)
-			if newScore > partialScores[v] {
+			if partialScores[v] == 0 || newScore > partialScores[v] {
 				partialScores[v] = newScore
 			}
 		}
