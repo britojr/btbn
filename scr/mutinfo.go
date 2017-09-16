@@ -2,11 +2,14 @@ package scr
 
 import (
 	"bufio"
+	"encoding/csv"
 	"fmt"
+	"io"
 	"math"
 	"strings"
 
 	"github.com/britojr/utl/conv"
+	"github.com/britojr/utl/errchk"
 	"github.com/britojr/utl/ioutl"
 )
 
@@ -28,9 +31,10 @@ func (m *MutInfo) Write(fname string) {
 	f := ioutl.CreateFile(fname)
 	defer f.Close()
 	for i := range m.mat {
-		for j := 0; j <= i; j++ {
+		for j := 0; j < i; j++ {
 			fmt.Fprintf(f, "%v ", m.mat[i][j])
 		}
+		fmt.Fprintf(f, "%v\n", m.mat[i][i])
 	}
 }
 
@@ -54,7 +58,7 @@ func ReadMutInfo(fname string) *MutInfo {
 func ComputeFromDataset(fname string) *MutInfo {
 	f := ioutl.OpenFile(fname)
 	defer f.Close()
-	scanner := bufio.NewScanner(f)
+	r := csv.NewReader(bufio.NewReader(f))
 
 	var (
 		N   int
@@ -62,15 +66,18 @@ func ComputeFromDataset(fname string) *MutInfo {
 		mxy [][][][]int // pair count
 		mat [][]float64 // pair mutual information
 	)
-	for scanner.Scan() {
+	r.Read() // ignore header line
+	record, err := r.Read()
+	for ; err != io.EOF; record, err = r.Read() {
+		errchk.Check(err, "")
 		N++
-		line := conv.Satoi(strings.Fields(scanner.Text()))
+		line := conv.Satoi(record)
 		if N == 1 {
 			mat = make([][]float64, len(line))
 			mx = make([][]int, len(line))
 			mxy = make([][][][]int, len(line))
 			for i := range line {
-				mxy[i] = make([][][]int, i+1)
+				mxy[i] = make([][][]int, i)
 				mat[i] = make([]float64, i+1)
 			}
 		}
@@ -94,7 +101,9 @@ func ComputeFromDataset(fname string) *MutInfo {
 	hx := make([]float64, len(mx))
 	for i := range mx {
 		for k := range mx[i] {
-			hx[i] += float64(mx[i][k]) * math.Log(float64(mx[i][k]))
+			if mx[i][k] > 0 {
+				hx[i] += float64(mx[i][k]) * math.Log(float64(mx[i][k]))
+			}
 		}
 	}
 	for i := range mxy {
@@ -102,12 +111,14 @@ func ComputeFromDataset(fname string) *MutInfo {
 			hij := float64(0)
 			for u := range mxy[i][j] {
 				for v := range mxy[i][j][u] {
-					hij += float64(mxy[i][j][u][v]) * math.Log(float64(mxy[i][j][u][v]))
+					if mxy[i][j][u][v] > 0 {
+						hij += float64(mxy[i][j][u][v]) * math.Log(float64(mxy[i][j][u][v]))
+					}
 				}
 			}
-			mat[i][j] = (-hij + hx[i] + hx[j]) * logN
+			mat[i][j] = ((hij - hx[i] - hx[j]) / float64(N)) + logN
 		}
-		mat[i][i] = hx[i] * logN
+		mat[i][i] = (-hx[i] / float64(N)) + logN
 	}
 
 	m := new(MutInfo)
