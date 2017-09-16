@@ -20,6 +20,7 @@ type Cache struct {
 // Read reads a score file into a score cache
 func Read(fname string) *Cache {
 	f := ioutl.OpenFile(fname)
+	defer f.Close()
 	scanner := bufio.NewScanner(f)
 
 	// read all variables
