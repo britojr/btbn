@@ -66,7 +66,7 @@ func initSubcommands() {
 	structComm.StringVar(&scoreFile, "s", "", "precomputed scores file")
 	structComm.StringVar(&parmFile, "p", "", "parameters file")
 	structComm.StringVar(&bnetFile, "b", "", "network output file")
-	structComm.StringVar(&optimizerAlg, "a", "sample", "structure optimizer algorithm {sample|iterative}")
+	structComm.StringVar(&optimizerAlg, "a", "sample", "structure optimizer algorithm {sample|selected|iterative}")
 	structComm.IntVar(&timeAvailable, "t", 60, "available time to search solution (0->unbounded)")
 	structComm.IntVar(&numSolutions, "i", 1, "max number of iterations (0->unbounded)")
 	structComm.IntVar(&maxPa, "mp", 0, "max number of parents (0->unbounded)")

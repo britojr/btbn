@@ -11,6 +11,7 @@ import (
 	"github.com/britojr/btbn/optimizer"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
+	"github.com/britojr/utl/ioutl"
 )
 
 func runStructComm() {
@@ -66,12 +67,23 @@ func structureLearning() {
 	}
 	log.Printf(" -------------------------------------------------- \n")
 
-	writeSolution(bnetFile, solution)
+	if len(bnetFile) > 0 {
+		writeSolution(bnetFile, solution)
+	}
 }
 
 func writeSolution(fname string, bn *optimizer.BNStructure) {
 	// bn.Size() bn.Parents(i).DumpString()
 	log.Printf("Printing solution: '%v'\n", fname)
+	f := ioutl.CreateFile(fname)
+	defer f.Close()
+	for i := 0; i < bn.Size(); i++ {
+		fmt.Fprintf(f, "%v:", i)
+		for _, v := range bn.Parents(i).DumpAsInts() {
+			fmt.Fprintf(f, " %v", v)
+		}
+		fmt.Fprintf(f, "\n")
+	}
 }
 
 // emptySetScore calculates the total score for when the parents sets are empty

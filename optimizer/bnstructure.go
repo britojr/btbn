@@ -62,3 +62,11 @@ func (b *BNStructure) LocalScore(v int) float64 {
 	}
 	return b.nodes[v].locScore
 }
+
+// Parents returns the parent set of a variable
+func (b *BNStructure) Parents(v int) varset.Varset {
+	if b.nodes[v] == nil {
+		return nil
+	}
+	return b.nodes[v].parents
+}
