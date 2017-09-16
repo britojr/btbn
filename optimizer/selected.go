@@ -103,16 +103,15 @@ func (s *SelectSampleSearch) selectKTrees() {
 		}
 		tk := ktree.FromCode(C)
 		iscr := s.computeIScore(tk)
-		if !s.acceptTree(tk, iscr, r) {
+		if !s.acceptTree(iscr, r) {
 			continue
 		}
 		s.tkList = append(s.tkList, scr.NewRecord(iscr, tk))
 	}
-	// TODO: needs to sort by decreasing IScore, use a pair <float64, interface{}>
 	scr.SortRecords(s.tkList)
 }
 
-func (s *SelectSampleSearch) acceptTree(tk *ktree.Ktree, iscr float64, r *rand.Rand) bool {
+func (s *SelectSampleSearch) acceptTree(iscr float64, r *rand.Rand) bool {
 	if iscr > s.bestIScr {
 		s.bestIScr = iscr
 		return true
