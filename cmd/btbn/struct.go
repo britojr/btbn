@@ -77,6 +77,8 @@ func writeSolution(fname string, bn *optimizer.BNStructure) {
 	log.Printf("Printing solution: '%v'\n", fname)
 	f := ioutl.CreateFile(fname)
 	defer f.Close()
+	fmt.Fprintf(f, "META variables = %v\n", bn.Size())
+	fmt.Fprintf(f, "META score = %v\n", bn.Score())
 	for i := 0; i < bn.Size(); i++ {
 		fmt.Fprintf(f, "%v:", i)
 		for _, v := range bn.Parents(i).DumpAsInts() {
