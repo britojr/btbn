@@ -43,7 +43,6 @@ func structureLearning() {
 	log.Println("Creating score rankers")
 	// scoreRankers := scr.CreateRankers(scoreRankType, scoreCache, maxPa)
 	scoreRankers := scr.CreateRankers(scoreCache, maxPa)
-	// TODO: may need to load a pre-computed mutual information file
 	// TODO: dataset will also be nedded when dealing with hidden variables
 
 	log.Println("Creating bounded-treewidth structure learning algorithm")
