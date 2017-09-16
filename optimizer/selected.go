@@ -21,6 +21,7 @@ type SelectSampleSearch struct {
 	scoreRankers []scr.Ranker // score rankers for each variable
 	nv           int          // number of variables
 	tw           int          // treewidth
+	mutInfoFile  string       // file with pre-computed mutual info
 
 	prevCodes []*codec.Code // previously accepted codes
 	bestIScr  float64       // currently best IScore
@@ -38,6 +39,7 @@ func NewSelectSampleSearch(scoreRankers []scr.Ranker, parmFile string) *SelectSa
 	s.nv = len(s.scoreRankers)
 	setParameters(s, parmFile)
 	s.validate()
+	s.mutInfo = scr.ReadMutInfo(s.mutInfoFile)
 	s.kernelZero = stats.GaussianKernel(0.0)
 	return s
 }
@@ -67,8 +69,8 @@ func (s *SelectSampleSearch) SetFileParameters(parms map[string]string) {
 	if numTrees, ok := parms["num_trees"]; ok {
 		s.numTrees = conv.Atoi(numTrees)
 	}
-	if mutInfoFile, ok := parms["mut_info"]; ok {
-		s.mutInfo = scr.ReadMutInfo(mutInfoFile)
+	if mutInfoFile, ok := parms["mutual_info"]; ok {
+		s.mutInfoFile = mutInfoFile
 	}
 }
 
@@ -78,8 +80,8 @@ func (s *SelectSampleSearch) validate() {
 		log.Printf("n=%v, tw=%v\n", s.nv, s.tw)
 		log.Panic("Invalid treewidth! Choose values such that: n >= tw+2 and tw > 0")
 	}
-	if s.mutInfo == nil {
-		log.Panic("Mutual information missing")
+	if len(s.mutInfoFile) == 0 {
+		log.Panic("Mutual information file missing")
 	}
 }
 
@@ -88,6 +90,8 @@ func (s *SelectSampleSearch) PrintParameters() {
 	log.Printf(" ========== ALGORITHM PARAMETERS ========== \n")
 	log.Printf("number of variables: %v\n", s.nv)
 	log.Printf("treewidth: %v\n", s.tw)
+	log.Printf("number of trees to queue: %v\n", s.numTrees)
+	log.Printf("mutual info file: '%v'\n", s.mutInfoFile)
 	log.Printf(" ------------------------------------------ \n")
 }
 
