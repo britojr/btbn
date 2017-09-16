@@ -67,6 +67,9 @@ func (s *SelectSampleSearch) SetFileParameters(parms map[string]string) {
 	if numTrees, ok := parms["num_trees"]; ok {
 		s.numTrees = conv.Atoi(numTrees)
 	}
+	if mutInfoFile, ok := parms["mut_info"]; ok {
+		s.mutInfo = scr.ReadMutInfo(mutInfoFile)
+	}
 }
 
 // Validate validates parameters
