@@ -13,9 +13,10 @@ import (
 
 // Define search algorithms names
 const (
-	AlgSampleSearch   = "sample"    // n14
-	AlgSelectedSample = "selected"  // n15
-	AlgIterativeBuild = "iterative" // n16
+	AlgSampleSearch    = "sample"    // n14
+	AlgSelectedSample  = "selected"  // n15
+	AlgGuidedSearch    = "guided"    // n16
+	AlgIterativeSearch = "iterative" // s16
 )
 
 // Optimizer defines a structure optimizer algorithm
@@ -33,6 +34,10 @@ func Create(optimizerAlg string, scoreRankers []scr.Ranker, parmFile string) (op
 		opt = NewSampleSearch(scoreRankers, parmFile)
 	case AlgSelectedSample:
 		opt = NewSelectSampleSearch(scoreRankers, parmFile)
+	case AlgGuidedSearch:
+		panic("not implemented")
+	case AlgIterativeSearch:
+		panic("not implemented")
 	default:
 		log.Panicf("invalid algorithm option: '%v'", optimizerAlg)
 	}
