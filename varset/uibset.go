@@ -53,3 +53,7 @@ func (b *uibset) Count() int {
 func (b *uibset) Equal(other Varset) bool {
 	return b.BitSet.Equal(other.(*uibset).BitSet)
 }
+
+func (b *uibset) Clone() Varset {
+	return &uibset{b.BitSet.Clone()}
+}

@@ -12,6 +12,7 @@ type Varset interface {
 	Clear(i int) Varset
 	Count() int
 	Equal(other Varset) bool
+	Clone() Varset
 }
 
 var varsetTypeDefault = "uibset"
