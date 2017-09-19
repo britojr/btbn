@@ -63,13 +63,13 @@ func (s *SelectSampleSearch) SetDefaultParameters() {
 
 // SetFileParameters sets parameters from input file
 func (s *SelectSampleSearch) SetFileParameters(parms map[string]string) {
-	if tw, ok := parms["treewidth"]; ok {
+	if tw, ok := parms[cTreewidth]; ok {
 		s.tw = conv.Atoi(tw)
 	}
-	if numTrees, ok := parms["num_trees"]; ok {
+	if numTrees, ok := parms[cNumTrees]; ok {
 		s.numTrees = conv.Atoi(numTrees)
 	}
-	if mutInfoFile, ok := parms["mutual_info"]; ok {
+	if mutInfoFile, ok := parms[cMutualInfo]; ok {
 		s.mutInfoFile = mutInfoFile
 	}
 }
@@ -89,9 +89,9 @@ func (s *SelectSampleSearch) validate() {
 func (s *SelectSampleSearch) PrintParameters() {
 	log.Printf(" ========== ALGORITHM PARAMETERS ========== \n")
 	log.Printf("number of variables: %v\n", s.nv)
-	log.Printf("treewidth: %v\n", s.tw)
-	log.Printf("number of trees to queue: %v\n", s.numTrees)
-	log.Printf("mutual info file: '%v'\n", s.mutInfoFile)
+	log.Printf("%v: %v\n", cTreewidth, s.tw)
+	log.Printf("%v: %v\n", cNumTrees, s.numTrees)
+	log.Printf("%v: '%v'\n", cMutualInfo, s.mutInfoFile)
 	log.Printf(" ------------------------------------------ \n")
 }
 

@@ -40,7 +40,7 @@ func (s *SampleSearch) SetDefaultParameters() {
 
 // SetFileParameters sets parameters from input file
 func (s *SampleSearch) SetFileParameters(parms map[string]string) {
-	if tw, ok := parms["treewidth"]; ok {
+	if tw, ok := parms[cTreewidth]; ok {
 		s.tw = conv.Atoi(tw)
 	}
 }
@@ -57,6 +57,6 @@ func (s *SampleSearch) validate() {
 func (s *SampleSearch) PrintParameters() {
 	log.Printf(" ========== ALGORITHM PARAMETERS ========== \n")
 	log.Printf("number of variables: %v\n", s.nv)
-	log.Printf("treewidth: %v\n", s.tw)
+	log.Printf("%v: %v\n", cTreewidth, s.tw)
 	log.Printf(" ------------------------------------------ \n")
 }

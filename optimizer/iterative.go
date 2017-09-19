@@ -18,7 +18,7 @@ type IterativeSearch struct {
 	nv           int          // number of variables
 	tw           int          // treewidth
 
-	algVariation string // search variation
+	searchVariation string // search variation
 
 	prevCliques map[string]struct{} // previously sampled initial cliques
 }
@@ -38,13 +38,13 @@ func NewIterativeSearch(scoreRankers []scr.Ranker, parmFile string) *IterativeSe
 func (s *IterativeSearch) Search() *BNStructure {
 	ord := s.sampleOrder()
 	bn := s.getInitialDAG(ord[:s.tw+1])
-	switch s.algVariation {
-	case "greedy":
+	switch s.searchVariation {
+	case cGreedy:
 		s.greedySearch(bn, ord)
-	case "astar":
+	case cAstar:
 		panic("not implemented")
 	default:
-		log.Panicf("invalid search variation: '%v'", s.algVariation)
+		log.Panicf("invalid search variation: '%v'", s.searchVariation)
 	}
 	return bn
 }
@@ -53,16 +53,16 @@ func (s *IterativeSearch) Search() *BNStructure {
 func (s *IterativeSearch) SetDefaultParameters() {
 	// set internal variables to defined constants
 	s.tw = 3
-	s.algVariation = "greedy"
+	s.searchVariation = cGreedy
 }
 
 // SetFileParameters sets parameters from input file
 func (s *IterativeSearch) SetFileParameters(parms map[string]string) {
-	if tw, ok := parms["treewidth"]; ok {
+	if tw, ok := parms[cTreewidth]; ok {
 		s.tw = conv.Atoi(tw)
 	}
-	if algVariation, ok := parms["alg_variation"]; ok {
-		s.algVariation = algVariation
+	if searchVariation, ok := parms[cSearchVariation]; ok {
+		s.searchVariation = searchVariation
 	}
 }
 
@@ -72,8 +72,8 @@ func (s *IterativeSearch) validate() {
 		log.Printf("n=%v, tw=%v\n", s.nv, s.tw)
 		log.Panic("Invalid treewidth! Choose values such that: n >= tw+2 and tw > 0")
 	}
-	if !(s.algVariation == "greedy" || s.algVariation == "astar") {
-		log.Panicf("Invalid algorithm variant option: '%v'", s.algVariation)
+	if !(s.searchVariation == cGreedy || s.searchVariation == cAstar) {
+		log.Panicf("Invalid algorithm variant option: '%v'", s.searchVariation)
 	}
 }
 
@@ -81,8 +81,8 @@ func (s *IterativeSearch) validate() {
 func (s *IterativeSearch) PrintParameters() {
 	log.Printf(" ========== ALGORITHM PARAMETERS ========== \n")
 	log.Printf("number of variables: %v\n", s.nv)
-	log.Printf("treewidth: %v\n", s.tw)
-	log.Printf("search type: '%v'\n", s.algVariation)
+	log.Printf("%v: %v\n", cTreewidth, s.tw)
+	log.Printf("%v: '%v'\n", cSearchVariation, s.searchVariation)
 	log.Printf(" ------------------------------------------ \n")
 }
 

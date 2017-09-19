@@ -11,12 +11,21 @@ import (
 	"github.com/britojr/utl/errchk"
 )
 
-// Define search algorithms names
+// Define nem constants
 const (
+	// search algorithms names
 	AlgSampleSearch    = "sample"    // n14
 	AlgSelectedSample  = "selected"  // n15
 	AlgGuidedSearch    = "guided"    // n16
 	AlgIterativeSearch = "iterative" // s16
+
+	// file parameters
+	cTreewidth       = "treewidth"
+	cNumTrees        = "num_trees"
+	cMutualInfo      = "mutual_info"
+	cGreedy          = "greedy"
+	cAstar           = "astar"
+	cSearchVariation = "search_variation"
 )
 
 // Optimizer defines a structure optimizer algorithm
