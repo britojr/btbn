@@ -38,6 +38,15 @@ func (tk *Ktree) VarOut() int {
 	return tk.vOut
 }
 
+// New creates a new ktree node
+func New(clique []int, vIn, vOut int) *Ktree {
+	tk := new(Ktree)
+	tk.clique = clique
+	tk.vIn = vIn
+	tk.vOut = vOut
+	return tk
+}
+
 // UniformSample uniformly samples a ktree
 func UniformSample(n, k int) *Ktree {
 	T, iphi, err := generator.RandomCharTree(n, k)
