@@ -9,6 +9,7 @@ import (
 // Ranker defines a list of best scores for a given variable
 type Ranker interface {
 	BestIn(restrictSet varset.Varset) (parents varset.Varset, localScore float64)
+	BestInLim(restrictSet varset.Varset, maxPa int) (parents varset.Varset, localScore float64)
 	ScoreOf(parents varset.Varset) float64
 }
 
