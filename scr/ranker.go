@@ -47,12 +47,18 @@ func NewListRanker(varIndex int, cache *Cache, maxPa int) *ListRanker {
 
 // BestIn finds the highest scoring parent set that is contained in the given restriction set
 func (m *ListRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr float64) {
+	return m.BestInLim(restric, restric.Count())
+}
+
+// BestInLim finds the highest scoring parent set that is contained in the given restriction set
+// and respects a given max parent limit
+func (m *ListRanker) BestInLim(restric varset.Varset, maxPa int) (parents varset.Varset, scr float64) {
 	if len(m.scoreList) == 0 {
 		panic(fmt.Errorf("Score list is empty"))
 	}
 	for _, v := range m.scoreList {
 		parents = v.Data().(varset.Varset)
-		if restric.IsSuperSet(parents) {
+		if restric.IsSuperSet(parents) && parents.Count() <= maxPa {
 			return parents, v.score
 		}
 	}
