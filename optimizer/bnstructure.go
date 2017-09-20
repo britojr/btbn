@@ -33,7 +33,7 @@ func (b *BNStructure) Better(other *BNStructure) bool {
 // Score returns the structure score
 func (b *BNStructure) Score() float64 {
 	if b.Size() != b.initialized {
-		return -math.MaxFloat64
+		return math.Inf(-1)
 	}
 	return b.totScore
 }
@@ -58,7 +58,7 @@ func (b *BNStructure) SetParents(v int, parents varset.Varset, localScore float6
 // LocalScore returns the local score of a family
 func (b *BNStructure) LocalScore(v int) float64 {
 	if b.nodes[v] == nil {
-		return -math.MaxFloat64
+		return math.Inf(-1)
 	}
 	return b.nodes[v].locScore
 }
