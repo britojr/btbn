@@ -8,6 +8,7 @@ import (
 	"github.com/britojr/tcc/characteristic"
 	"github.com/britojr/tcc/codec"
 	"github.com/britojr/tcc/dandelion"
+	"github.com/britojr/utl/ints"
 )
 
 func helperGetVarsList(tk *Ktree) (m [][]int) {
@@ -205,14 +206,18 @@ func helperGetAdjList(tk *Ktree, n int) [][]int {
 }
 
 func TestFromCode(t *testing.T) {
-	code1 := &codec.Code{
+	code1 := []*codec.Code{{
 		Q: []int{1, 4},
 		S: &dandelion.DandelionCode{
 			P: []int{0, 1, 3},
 			L: []int{-1, 1, 1},
-		},
-	}
-	adj1 := [][]int{
+		}}, {
+		Q: []int{1, 2, 6},
+		S: &dandelion.DandelionCode{
+			P: []int{1, 1, 1, 4},
+			L: []int{2, 2, 1, 1},
+		}}}
+	adj1 := [][][]int{{
 		{1, 2, 3, 4},
 		{2, 4, 5, 6},
 		{3},
@@ -220,14 +225,25 @@ func TestFromCode(t *testing.T) {
 		{5, 6},
 		[]int(nil),
 		[]int(nil),
-	}
+	}, {
+		{1, 2, 3, 4, 5, 6, 7},
+		{2, 3, 4, 6, 7, 8},
+		{3, 5, 6, 7, 8},
+		[]int{5},
+		[]int{6},
+		[]int(nil),
+		[]int{8},
+		[]int(nil),
+		[]int(nil),
+	}}
 	cases := []struct {
 		n, k int
 		code *codec.Code
 		adj  [][]int
 	}{
-		{7, 2, code1, adj1},
-		{7, 2, code1, adj1},
+		{7, 2, code1[0], adj1[0]},
+		{7, 2, code1[0], adj1[0]},
+		{9, 3, code1[1], adj1[1]},
 	}
 	for _, tt := range cases {
 		tk := FromCode(tt.code)
@@ -243,6 +259,31 @@ func TestFromCode(t *testing.T) {
 		}
 		if tt.n-tt.k != len(m) {
 			t.Errorf("wrong number of nodes (%v)!=(%v)", tt.n-tt.k, len(m))
+		}
+	}
+}
+
+func TestVarInOut(t *testing.T) {
+	cases := []struct {
+		n, k int
+	}{{7, 2}, {9, 3}, {18, 5}}
+	for _, tt := range cases {
+		tk := UniformSample(tt.n, tt.k)
+		queue := []*Ktree{tk}
+		for len(queue) > 0 {
+			pa := queue[0]
+			queue = queue[1:]
+			for _, ch := range pa.Children() {
+				vOut := ints.Difference(pa.Variables(), ch.Variables())
+				if !reflect.DeepEqual(vOut, []int{ch.VarOut()}) {
+					t.Errorf("wrong varOut: (%v)!=(%v)", vOut, ch.VarOut())
+				}
+				vIn := ints.Difference(ch.Variables(), pa.Variables())
+				if !reflect.DeepEqual(vIn, []int{ch.VarIn()}) {
+					t.Errorf("wrong varIn: (%v)!=(%v)", vIn, ch.VarIn())
+				}
+			}
+			queue = append(queue, pa.Children()...)
 		}
 	}
 }
