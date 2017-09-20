@@ -101,6 +101,31 @@ func TestEqual(t *testing.T) {
 		}
 	}
 }
+func TestEquals2(t *testing.T) {
+	cases := []struct {
+		b1, b2 Varset
+		equal  bool
+	}{{
+		New(9).SetInts([]int{0, 1, 2}),
+		New(5).SetInts([]int{0, 1, 2}),
+		false,
+	}, {
+		New(512).SetInts([]int{0, 2, 100, 312, 512}),
+		New(512).SetInts([]int{0, 2, 100, 312, 512}),
+		true,
+	}, {
+		New(512).SetInts([]int{0, 2, 100, 312, 512}),
+		New(512).SetInts([]int{1, 2, 100, 312, 512}),
+		false,
+	}}
+	for _, tt := range cases {
+		if tt.b1.Equal(tt.b2) != tt.equal || tt.b2.Equal(tt.b1) != tt.equal {
+			t.Errorf("wrong equality between (%v) and (%v): (%v)!=(%v)",
+				tt.b1, tt.b2, tt.b1.Equal(tt.b2), tt.equal,
+			)
+		}
+	}
+}
 
 func TestIsSuperSet(t *testing.T) {
 	cases := []struct {
