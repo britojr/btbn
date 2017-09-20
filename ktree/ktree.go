@@ -1,6 +1,7 @@
 package ktree
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/britojr/tcc/characteristic"
@@ -77,6 +78,23 @@ func FromCode(C *codec.Code) *Ktree {
 	k := len(C.Q)
 	n := k + len(T.P) - 1
 	return newFromDecodedCharTree(decodeCharTree(T, iphi, n, k))
+}
+
+func (tk *Ktree) String() string {
+	cl := allCliques(tk)
+	s := fmt.Sprintf("{size: %v cl:{%v}}", len(cl), cl)
+	return s
+}
+
+func allCliques(tk *Ktree) (cl [][]int) {
+	queue := []*Ktree{tk}
+	for len(queue) > 0 {
+		r := queue[0]
+		queue = queue[1:]
+		cl = append(cl, r.Variables())
+		queue = append(queue, r.Children()...)
+	}
+	return
 }
 
 func decodeCharTree(T *characteristic.Tree, iphi []int, n, k int) (
