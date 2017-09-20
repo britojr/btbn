@@ -57,7 +57,7 @@ func TestInts(t *testing.T) {
 	}
 }
 
-func TestEqual(t *testing.T) {
+func TestClear(t *testing.T) {
 	cases := []struct {
 		size int
 		vars []int
@@ -76,6 +76,28 @@ func TestEqual(t *testing.T) {
 		b.Clear(tt.i)
 		if b.Equal(b2) {
 			t.Errorf("should be different (%v)!=(%v)", b, b2)
+		}
+	}
+}
+
+func TestEqual(t *testing.T) {
+	cases := []struct {
+		size         int
+		vars1, vars2 []int
+		equal        bool
+	}{
+		{3, []int{}, []int{}, true},
+		{3, []int{}, []int{0}, false},
+		{3, []int{0, 1, 2}, []int{0, 1, 2}, true},
+		{527, []int{0, 2, 100, 312, 512}, []int{0, 2, 100, 312, 512}, true},
+		{527, []int{0, 2, 100, 312, 512}, []int{1, 2, 100, 312, 512}, false},
+		{527, []int{0, 2, 100, 312, 512}, []int{0, 1, 2, 100, 312, 512}, false},
+		{0, []int(nil), []int(nil), true},
+	}
+	for _, tt := range cases {
+		b1, b2 := New(tt.size).SetInts(tt.vars1), New(tt.size).SetInts(tt.vars2)
+		if b1.Equal(b2) != tt.equal || b2.Equal(b1) != tt.equal {
+			t.Errorf("wrong equality between (%v) and (%v): (%v)!=(%v)", b1, b2, b1.Equal(b2), tt.equal)
 		}
 	}
 }
