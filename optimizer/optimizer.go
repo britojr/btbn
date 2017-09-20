@@ -46,7 +46,7 @@ func Create(optimizerAlg string, scoreRankers []scr.Ranker, parmFile string) (op
 	case AlgGuidedSearch:
 		panic("not implemented")
 	case AlgIterativeSearch:
-		panic("not implemented")
+		opt = NewIterativeSearch(scoreRankers, parmFile)
 	default:
 		log.Panicf("invalid algorithm option: '%v'", optimizerAlg)
 	}
