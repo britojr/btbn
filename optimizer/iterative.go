@@ -102,8 +102,14 @@ func (s *IterativeSearch) sampleOrder() []int {
 
 func (s *IterativeSearch) getInitialDAG(vars []int) *BNStructure {
 	// TODO: replace this for an exact method
-	bn := DAGapproximatedLearning(ktree.New(vars, -1, -1), s.scoreRankers)
-	return bn
+	bestBn := DAGapproximatedLearning(ktree.New(vars, -1, -1), s.scoreRankers)
+	for i := 0; i < 50; i++ {
+		currBn := DAGapproximatedLearning(ktree.New(vars, -1, -1), s.scoreRankers)
+		if currBn.Better(bestBn) {
+			bestBn = currBn
+		}
+	}
+	return bestBn
 }
 
 func (s *IterativeSearch) greedySearch(bn *BNStructure, ord []int) *BNStructure {

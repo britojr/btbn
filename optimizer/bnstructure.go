@@ -29,7 +29,7 @@ func NewBNStructure(nvars int) *BNStructure {
 func (b *BNStructure) String() string {
 	s := fmt.Sprintf("{size: %v\n", b.Size())
 	for i := 0; i < b.Size(); i++ {
-		s += fmt.Sprintf("%v: {p(%v), s(%v)}\n", i, b.Parents(i), b.LocalScore(i))
+		s += fmt.Sprintf("\t%v: {s(%v), p(%v)}\n", i, b.LocalScore(i), b.Parents(i))
 	}
 	s += fmt.Sprintf("total: %v}\n", b.Score())
 	return s
