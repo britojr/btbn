@@ -33,6 +33,12 @@ func (b *uibset) SetInts(is []int) Varset {
 	}
 	return b
 }
+func (b *uibset) ClearInts(is []int) Varset {
+	for _, i := range is {
+		b.BitSet.Clear(uint(i))
+	}
+	return b
+}
 
 func (b *uibset) LoadHashString(s string) Varset {
 	b.UnmarshalBinary([]byte(s))

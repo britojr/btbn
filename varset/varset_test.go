@@ -102,3 +102,23 @@ func TestIsSuperSet(t *testing.T) {
 		}
 	}
 }
+
+func TestClearInts(t *testing.T) {
+	cases := []struct {
+		size   int
+		vars   []int
+		clear  []int
+		result []int
+	}{
+		{10, []int{1}, []int{1}, []int{}},
+		{10, []int{0, 1, 2, 7, 9}, []int{1, 2, 3}, []int{0, 7, 9}},
+		{527, []int{0, 2, 100, 312, 512}, []int{101, 512}, []int{0, 2, 100, 312}},
+	}
+	for _, tt := range cases {
+		b := New(tt.size).SetInts(tt.vars)
+		b.ClearInts(tt.clear)
+		if !reflect.DeepEqual(tt.result, b.DumpAsInts()) {
+			t.Errorf("wrong bits cleared (%v)!=(%v)", tt.result, b.DumpAsInts())
+		}
+	}
+}

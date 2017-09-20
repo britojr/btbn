@@ -8,6 +8,7 @@ type Varset interface {
 	LoadHashString(s string) Varset
 	DumpAsInts() []int
 	SetInts(is []int) Varset
+	ClearInts(is []int) Varset
 	IsSuperSet(other Varset) bool
 	Set(i int) Varset
 	Clear(i int) Varset
