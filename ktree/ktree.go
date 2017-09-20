@@ -6,7 +6,6 @@ import (
 	"github.com/britojr/tcc/characteristic"
 	"github.com/britojr/tcc/codec"
 	"github.com/britojr/tcc/generator"
-	"github.com/britojr/tcc/ktree"
 	"github.com/britojr/utl/errchk"
 )
 
@@ -15,17 +14,22 @@ type Ktree struct {
 	clique   []int    // list of variables in a clique
 	vIn      int      // variable included relative to the parent node
 	vOut     int      // variable removed relative to the parent node
+	parent   *Ktree   // pointer to parent
 	children []*Ktree // pointer list to chilren
+}
+
+// New creates a new ktree node
+func New(clique []int, vIn, vOut int) *Ktree {
+	tk := new(Ktree)
+	tk.clique = clique
+	tk.vIn = vIn
+	tk.vOut = vOut
+	return tk
 }
 
 // Variables returns the variables of this node
 func (tk *Ktree) Variables() []int {
 	return tk.clique
-}
-
-// Children returns the children of this node
-func (tk *Ktree) Children() []*Ktree {
-	return tk.children
 }
 
 // VarIn returns the variable that was included in this node relative to the parent node
@@ -38,32 +42,40 @@ func (tk *Ktree) VarOut() int {
 	return tk.vOut
 }
 
-// New creates a new ktree node
-func New(clique []int, vIn, vOut int) *Ktree {
-	tk := new(Ktree)
-	tk.clique = clique
-	tk.vIn = vIn
-	tk.vOut = vOut
-	return tk
+// Children returns the children of this node
+func (tk *Ktree) Children() []*Ktree {
+	return tk.children
+}
+
+// AddChild adds a child to current node
+func (tk *Ktree) AddChild(ch *Ktree) {
+	tk.children = append(tk.children, ch)
+}
+
+// Parent returns pointer to parent node
+func (tk *Ktree) Parent() *Ktree {
+	return tk.parent
+}
+
+// SetParent updates parent node
+func (tk *Ktree) SetParent(pa *Ktree) {
+	tk.parent = pa
 }
 
 // UniformSample uniformly samples a ktree
 func UniformSample(n, k int) *Ktree {
-	T, iphi, err := generator.RandomCharTree(n, k)
+	C, err := generator.RandomCode(n, k)
 	errchk.Check(err, "")
-	return newFromDecodedCharTree(decodeCharTree(T, iphi, n, k))
+	return FromCode(C)
 }
 
 // FromCode creates a ktree from a given code
 func FromCode(C *codec.Code) *Ktree {
 	// Decode a characteristic tree
-	T, err := codec.DecodingCharTree(C)
+	T, iphi, err := codec.DecodeCharTree(C)
 	errchk.Check(err, "")
-	// Calculate inverse phi for relabeling
 	k := len(C.Q)
 	n := k + len(T.P) - 1
-	iphi := ktree.GetInverse(ktree.ComputePhi(n, k, C.Q))
-
 	return newFromDecodedCharTree(decodeCharTree(T, iphi, n, k))
 }
 
@@ -80,7 +92,7 @@ func decodeCharTree(T *characteristic.Tree, iphi []int, n, k int) (
 	// decode clique list
 	K, varout := decodeCliqueList(T, children, n, k)
 	// relable clique list
-	cliques, varin, varout := decodeRelable(K, varout, iphi)
+	cliques, varin, varout := decodeRelabel(K, varout, iphi)
 	return children, cliques, varin, varout
 }
 
@@ -118,7 +130,7 @@ func decodeCliqueList(T *characteristic.Tree, children [][]int, n, k int) ([][]i
 	return K, varout
 }
 
-func decodeRelable(K [][]int, varout []int, iphi []int) ([][]int, []int, []int) {
+func decodeRelabel(K [][]int, varout []int, iphi []int) ([][]int, []int, []int) {
 	// create relabled cliques list
 	cliques := make([][]int, len(K))
 	varin := make([]int, len(K))

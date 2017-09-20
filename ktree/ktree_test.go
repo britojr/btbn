@@ -6,7 +6,26 @@ import (
 	"testing"
 
 	"github.com/britojr/tcc/characteristic"
+	"github.com/britojr/tcc/codec"
+	"github.com/britojr/tcc/dandelion"
 )
+
+func helperGetVarsList(tk *Ktree) (m [][]int) {
+	queue, r := []*Ktree{tk}, &Ktree{}
+	for len(queue) > 0 {
+		r = queue[0]
+		queue = queue[1:]
+		line := append([]int(nil), r.Variables()...)
+		sort.Ints(line)
+		line = append(line, r.VarIn())
+		line = append(line, r.VarOut())
+		m = append(m, line)
+		for _, ch := range r.Children() {
+			queue = append(queue, ch)
+		}
+	}
+	return
+}
 
 func TestDecodeCharTree(t *testing.T) {
 	cases := []struct {
@@ -124,29 +143,13 @@ func TestNewFromDecodedCharTree(t *testing.T) {
 	}
 	for _, tt := range cases {
 		tk := newFromDecodedCharTree(tt.children, tt.cliques, tt.varin, tt.varout)
-		got := getVariablesList(tk)
+		got := helperGetVarsList(tk)
 		for i := range tt.answerlist {
 			if !reflect.DeepEqual(tt.answerlist[i], got[i]) {
 				t.Errorf("(%v)!=(%v)", tt.answerlist[i], got[i])
 			}
 		}
 	}
-}
-
-func getVariablesList(tk *Ktree) (m [][]int) {
-	queue, r := []*Ktree{tk}, &Ktree{}
-	for len(queue) > 0 {
-		r, queue = queue[0], queue[1:]
-		line := append([]int(nil), r.Variables()...)
-		sort.Ints(line)
-		line = append(line, r.VarIn())
-		line = append(line, r.VarOut())
-		m = append(m, line)
-		for _, ch := range r.Children() {
-			queue = append(queue, ch)
-		}
-	}
-	return
 }
 
 func TestUniformSample(t *testing.T) {
@@ -157,12 +160,113 @@ func TestUniformSample(t *testing.T) {
 	}
 	for _, tt := range cases {
 		tk := UniformSample(tt.n, tt.k)
-		got := getVariablesList(tk)
-		if tt.k+3 != len(got[0]) {
-			t.Errorf("wrong k (%v)!=(%v)", tt.k+3, len(got[0]))
+		got := helperGetVarsList(tk)
+		if tt.k+1 != len(got[0])-2 {
+			t.Errorf("wrong clique size k+1 (%v)!=(%v)", tt.k+1, len(got[0])-2)
 		}
 		if tt.n-tt.k != len(got) {
 			t.Errorf("wrong number of nodes (%v)!=(%v)", tt.n-tt.k, len(got))
+		}
+	}
+}
+
+func helperGetAdjList(tk *Ktree, n int) [][]int {
+	adj := make([][]int, n)
+	for i, u := range tk.Variables() {
+		for _, v := range tk.Variables()[i+1:] {
+			if u < v {
+				adj[u] = append(adj[u], v)
+			} else {
+				adj[v] = append(adj[v], u)
+			}
+		}
+	}
+	queue := append([]*Ktree(nil), tk.Children()...)
+	for len(queue) > 0 {
+		r := queue[0]
+		queue = queue[1:]
+		u := r.VarIn()
+		for _, v := range r.Variables() {
+			if v == u {
+				continue
+			}
+			if u < v {
+				adj[u] = append(adj[u], v)
+			} else {
+				adj[v] = append(adj[v], u)
+			}
+		}
+		queue = append(queue, r.Children()...)
+	}
+	for i := range adj {
+		sort.Ints(adj[i])
+	}
+	return adj
+}
+
+func TestFromCode(t *testing.T) {
+	code1 := &codec.Code{
+		Q: []int{1, 4},
+		S: &dandelion.DandelionCode{
+			P: []int{0, 1, 3},
+			L: []int{-1, 1, 1},
+		},
+	}
+	adj1 := [][]int{
+		{1, 2, 3, 4},
+		{2, 4, 5, 6},
+		{3},
+		[]int(nil),
+		{5, 6},
+		[]int(nil),
+		[]int(nil),
+	}
+	cases := []struct {
+		n, k int
+		code *codec.Code
+		adj  [][]int
+	}{
+		{7, 2, code1, adj1},
+		{7, 2, code1, adj1},
+	}
+	for _, tt := range cases {
+		tk := FromCode(tt.code)
+		got := helperGetAdjList(tk, tt.n)
+		for i := range tt.adj {
+			if !reflect.DeepEqual(tt.adj[i], got[i]) {
+				t.Errorf("wrong adj[%v]: (%v)!=(%v)", i, tt.adj[i], got[i])
+			}
+		}
+		m := helperGetVarsList(tk)
+		if tt.k+1 != len(m[0])-2 {
+			t.Errorf("wrong clique size k+1 (%v)!=(%v)", tt.k+1, len(m[0])-2)
+		}
+		if tt.n-tt.k != len(m) {
+			t.Errorf("wrong number of nodes (%v)!=(%v)", tt.n-tt.k, len(m))
+		}
+	}
+}
+
+func TestNew(t *testing.T) {
+	adj1 := [][]int{
+		{1, 2, 3, 4},
+		{2, 4, 5, 6},
+		{3},
+		[]int(nil),
+		{5, 6},
+		[]int(nil),
+		[]int(nil),
+	}
+	ch1 := New([]int{0, 1, 4}, 4, 2)
+	ch1.AddChild(New([]int{1, 4, 5}, 5, 0))
+	ch1.AddChild(New([]int{1, 4, 6}, 6, 0))
+	tk1 := New([]int{0, 1, 2}, -1, -1)
+	tk1.AddChild(New([]int{0, 2, 3}, 3, 1))
+	tk1.AddChild(ch1)
+	got := helperGetAdjList(tk1, len(adj1))
+	for i := range adj1 {
+		if !reflect.DeepEqual(adj1[i], got[i]) {
+			t.Errorf("wrong adj[%v]: (%v)!=(%v)", i, adj1[i], got[i])
 		}
 	}
 }
