@@ -1,6 +1,7 @@
 package optimizer
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/britojr/btbn/varset"
@@ -23,6 +24,15 @@ func NewBNStructure(nvars int) *BNStructure {
 	b := new(BNStructure)
 	b.nodes = make([]*node, nvars)
 	return b
+}
+
+func (b *BNStructure) String() string {
+	s := fmt.Sprintf("{size: %v\n", b.Size())
+	for i := 0; i < b.Size(); i++ {
+		s += fmt.Sprintf("%v: {p(%v), s(%v)}\n", i, b.Parents(i), b.LocalScore(i))
+	}
+	s += fmt.Sprintf("total: %v}\n", b.Score())
+	return s
 }
 
 // Better returns true if this structure has a better score
