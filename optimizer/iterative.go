@@ -9,27 +9,18 @@ import (
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
-	"github.com/britojr/utl/conv"
 )
 
 // IterativeSearch implements the dag iterative building strategy
 type IterativeSearch struct {
-	scoreRankers []scr.Ranker // score rankers for each variable
-	nv           int          // number of variables
-	tw           int          // treewidth
-
-	searchVariation string // search variation
-
-	prevCliques map[string]struct{} // previously sampled initial cliques
+	*common                             // common variables and methods
+	searchVariation string              // search variation
+	prevCliques     map[string]struct{} // previously sampled initial cliques
 }
 
-// NewIterativeSearch creates a instance of the iterative stragegy
+// NewIterativeSearch creates an instance of the iterative stragegy
 func NewIterativeSearch(scoreRankers []scr.Ranker, parmFile string) *IterativeSearch {
-	s := new(IterativeSearch)
-	s.scoreRankers = scoreRankers
-	s.nv = len(s.scoreRankers)
-	setParameters(s, parmFile)
-	s.validate()
+	s := &IterativeSearch{common: newCommon(scoreRankers, parmFile)}
 	s.prevCliques = make(map[string]struct{})
 	return s
 }
@@ -49,29 +40,23 @@ func (s *IterativeSearch) Search() *BNStructure {
 	return bn
 }
 
-// SetDefaultParameters sets the defaults
+// SetDefaultParameters sets parameters to default values
 func (s *IterativeSearch) SetDefaultParameters() {
-	// set internal variables to defined constants
-	s.tw = 3
+	s.common.SetDefaultParameters()
 	s.searchVariation = cGreedy
 }
 
 // SetFileParameters sets parameters from input file
 func (s *IterativeSearch) SetFileParameters(parms map[string]string) {
-	if tw, ok := parms[cTreewidth]; ok {
-		s.tw = conv.Atoi(tw)
-	}
+	s.common.SetFileParameters(parms)
 	if searchVariation, ok := parms[cSearchVariation]; ok {
 		s.searchVariation = searchVariation
 	}
 }
 
-// Validate validates parameters
-func (s *IterativeSearch) validate() {
-	if s.tw <= 0 || s.nv < s.tw+2 {
-		log.Printf("n=%v, tw=%v\n", s.nv, s.tw)
-		log.Panic("Invalid treewidth! Choose values such that: n >= tw+2 and tw > 0")
-	}
+// ValidateParameters validates internal parameters
+func (s *IterativeSearch) ValidateParameters() {
+	s.common.ValidateParameters()
 	if !(s.searchVariation == cGreedy || s.searchVariation == cAstar) {
 		log.Panicf("Invalid algorithm variant option: '%v'", s.searchVariation)
 	}
@@ -79,13 +64,12 @@ func (s *IterativeSearch) validate() {
 
 // PrintParameters prints the algorithm's current parameters
 func (s *IterativeSearch) PrintParameters() {
-	log.Printf(" ========== ALGORITHM PARAMETERS ========== \n")
-	log.Printf("number of variables: %v\n", s.nv)
-	log.Printf("%v: %v\n", cTreewidth, s.tw)
+	s.common.PrintParameters()
 	log.Printf("%v: '%v'\n", cSearchVariation, s.searchVariation)
-	log.Printf(" ------------------------------------------ \n")
 }
 
+// sampleOrder samples a permutation of variables
+// rejecting repeated k+1 initial variables that already occured in previous samples
 func (s *IterativeSearch) sampleOrder() []int {
 	r := rand.New(rand.NewSource(seed()))
 	for {

@@ -18,28 +18,19 @@ import (
 
 // SelectSampleSearch implements the select sampling strategy
 type SelectSampleSearch struct {
-	scoreRankers []scr.Ranker // score rankers for each variable
-	nv           int          // number of variables
-	tw           int          // treewidth
-	mutInfoFile  string       // file with pre-computed mutual info
-
-	prevCodes []*codec.Code // previously accepted codes
-	bestIScr  float64       // currently best IScore
-	numTrees  int           // number of ktrees to sample before start learning DAG
-	tkList    []*scr.Record // list of accepted ktrees sorted by score
-	mutInfo   *scr.MutInfo  // pre-computed mutual information matrix
-
-	kernelZero float64 // pre-calculated kernel(0)
+	*common                   // common variables and methods
+	mutInfoFile string        // file with pre-computed mutual info
+	prevCodes   []*codec.Code // previously accepted codes
+	bestIScr    float64       // currently best IScore
+	numTrees    int           // number of ktrees to sample before start learning DAG
+	tkList      []*scr.Record // list of accepted ktrees sorted by score
+	mutInfo     *scr.MutInfo  // pre-computed mutual information matrix
+	kernelZero  float64       // pre-calculated kernel(0)
 }
 
-// NewSelectSampleSearch creates a instance of the sample stragegy
+// NewSelectSampleSearch creates a instance of the selected sample stragegy
 func NewSelectSampleSearch(scoreRankers []scr.Ranker, parmFile string) *SelectSampleSearch {
-	s := new(SelectSampleSearch)
-	s.scoreRankers = scoreRankers
-	s.nv = len(s.scoreRankers)
-	setParameters(s, parmFile)
-	s.validate()
-	s.mutInfo = scr.ReadMutInfo(s.mutInfoFile)
+	s := &SelectSampleSearch{common: newCommon(scoreRankers, parmFile)}
 	s.kernelZero = stats.GaussianKernel(0.0)
 	return s
 }
@@ -54,18 +45,15 @@ func (s *SelectSampleSearch) Search() *BNStructure {
 	return bn
 }
 
-// SetDefaultParameters sets the defaults
+// SetDefaultParameters sets parameters to default values
 func (s *SelectSampleSearch) SetDefaultParameters() {
-	// set internal variables to defined constants
-	s.tw = 3
+	s.common.SetDefaultParameters()
 	s.numTrees = 1
 }
 
 // SetFileParameters sets parameters from input file
 func (s *SelectSampleSearch) SetFileParameters(parms map[string]string) {
-	if tw, ok := parms[cTreewidth]; ok {
-		s.tw = conv.Atoi(tw)
-	}
+	s.common.SetFileParameters(parms)
 	if numTrees, ok := parms[cNumTrees]; ok {
 		s.numTrees = conv.Atoi(numTrees)
 	}
@@ -74,25 +62,20 @@ func (s *SelectSampleSearch) SetFileParameters(parms map[string]string) {
 	}
 }
 
-// Validate validates parameters
-func (s *SelectSampleSearch) validate() {
-	if s.tw <= 0 || s.nv < s.tw+2 {
-		log.Printf("n=%v, tw=%v\n", s.nv, s.tw)
-		log.Panic("Invalid treewidth! Choose values such that: n >= tw+2 and tw > 0")
-	}
+// ValidateParameters validates internal parameters
+func (s *SelectSampleSearch) ValidateParameters() {
+	s.common.ValidateParameters()
 	if len(s.mutInfoFile) == 0 {
 		log.Panic("Mutual information file missing")
 	}
+	s.mutInfo = scr.ReadMutInfo(s.mutInfoFile)
 }
 
 // PrintParameters prints the algorithm's current parameters
 func (s *SelectSampleSearch) PrintParameters() {
-	log.Printf(" ========== ALGORITHM PARAMETERS ========== \n")
-	log.Printf("number of variables: %v\n", s.nv)
-	log.Printf("%v: %v\n", cTreewidth, s.tw)
+	s.common.PrintParameters()
 	log.Printf("%v: %v\n", cNumTrees, s.numTrees)
 	log.Printf("%v: '%v'\n", cMutualInfo, s.mutInfoFile)
-	log.Printf(" ------------------------------------------ \n")
 }
 
 // selectKTrees samples and selects a given number of ktrees

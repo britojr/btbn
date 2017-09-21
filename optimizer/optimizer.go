@@ -8,6 +8,7 @@ import (
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/britojr/btbn/scr"
+	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/errchk"
 )
 
@@ -19,13 +20,15 @@ const (
 	AlgGuidedSearch    = "guided"    // n16
 	AlgIterativeSearch = "iterative" // s16
 
-	// file parameters
+	// file parameters fields
 	cTreewidth       = "treewidth"
 	cNumTrees        = "num_trees"
 	cMutualInfo      = "mutual_info"
-	cGreedy          = "greedy"
-	cAstar           = "astar"
 	cSearchVariation = "search_variation"
+
+	// file parameters fields options
+	cGreedy = "greedy"
+	cAstar  = "astar"
 )
 
 // Optimizer defines a structure optimizer algorithm
@@ -34,6 +37,7 @@ type Optimizer interface {
 	SetDefaultParameters()
 	SetFileParameters(parms map[string]string)
 	PrintParameters()
+	ValidateParameters()
 }
 
 // Create creates a structure optimizer algorithm
@@ -50,6 +54,7 @@ func Create(optimizerAlg string, scoreRankers []scr.Ranker, parmFile string) (op
 	default:
 		log.Panicf("invalid algorithm option: '%v'", optimizerAlg)
 	}
+	setParameters(opt, parmFile)
 	return
 }
 
@@ -84,7 +89,6 @@ func Search(algorithm Optimizer, numSolutions, timeAvailable int) *BNStructure {
 				break
 			}
 			i++
-			// if remaining <= 0 || (numSolutions > 0 && i >= numSolutions) {
 			if numSolutions > 0 && i >= numSolutions {
 				break
 			}
@@ -106,6 +110,7 @@ func setParameters(alg Optimizer, parmFile string) {
 		parms := readParametersFile(parmFile)
 		alg.SetFileParameters(parms)
 	}
+	alg.ValidateParameters()
 }
 
 func readParametersFile(parmFile string) map[string]string {
@@ -114,4 +119,37 @@ func readParametersFile(parmFile string) map[string]string {
 	errchk.Check(err, "")
 	errchk.Check(yaml.Unmarshal([]byte(data), &m), "")
 	return m
+}
+
+// common defines optimizer's commom/default behaviours
+type common struct {
+	tw           int          // treewidth
+	nv           int          // number of variables
+	scoreRankers []scr.Ranker // score rankers for each variable
+}
+
+func newCommon(scoreRankers []scr.Ranker, parmFile string) *common {
+	s := new(common)
+	s.scoreRankers = scoreRankers
+	s.nv = len(s.scoreRankers)
+	return s
+}
+func (s *common) SetDefaultParameters() {
+	s.tw = 3
+}
+func (s *common) SetFileParameters(parms map[string]string) {
+	if tw, ok := parms[cTreewidth]; ok {
+		s.tw = conv.Atoi(tw)
+	}
+}
+func (s *common) ValidateParameters() {
+	if s.tw <= 0 || s.nv < s.tw+2 {
+		log.Printf("n=%v, tw=%v\n", s.nv, s.tw)
+		log.Panic("Invalid treewidth! Choose values such that: n >= tw+2 and tw > 0")
+	}
+}
+func (s *common) PrintParameters() {
+	log.Printf(" ========== ALGORITHM PARAMETERS ========== \n")
+	log.Printf("number of variables: %v\n", s.nv)
+	log.Printf("%v: %v\n", cTreewidth, s.tw)
 }
