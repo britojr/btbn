@@ -11,6 +11,7 @@ import (
 	"github.com/britojr/btbn/optimizer"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
+	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/ioutl"
 )
 
@@ -40,7 +41,7 @@ func structureLearning() {
 
 	log.Println("Reading parameters file")
 	parms := ioutl.ReadYaml(parmFile)
-	maxPa := defMaxPa(parms)
+	maxPa := getMaxPa(parms)
 	log.Println("Reading score cache")
 	scoreCache := scr.Read(scoreFile)
 	log.Println("Creating score rankers")
@@ -98,6 +99,19 @@ func emptySetScore(rankers []scr.Ranker) (es float64) {
 	return
 }
 
-func defMaxPa(parms map[string]string) int {
-	return 0
+func getMaxPa(parms map[string]string) int {
+	var tw, mp int
+	if stw, ok := parms[optimizer.ParmTreewidth]; ok {
+		tw = conv.Atoi(stw)
+	}
+	if smp, ok := parms[optimizer.ParmMaxParents]; ok {
+		mp = conv.Atoi(smp)
+	}
+	switch {
+	case tw <= 0:
+		return mp
+	case mp <= 0 || mp > tw:
+		return tw
+	}
+	return mp
 }

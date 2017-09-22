@@ -106,6 +106,7 @@ func (s *IterativeSearch) greedySearch(bn *BNStructure, ord []int) *BNStructure 
 	ord = ord[s.tw+1:]
 	for len(ord) > 0 {
 		v := ord[0]
+		// TODO: no need to use this limit since the restriction is a (k+1)-clique
 		bestPs, bestScr := s.scoreRankers[v].BestInLim(clqs[0], s.tw)
 		for _, clq := range clqs[1:] {
 			ps, scr := s.scoreRankers[v].BestInLim(clq, s.tw)
