@@ -26,7 +26,7 @@ func (s *common) SetDefaultParameters() {
 }
 
 func (s *common) SetFileParameters(parms map[string]string) {
-	if tw, ok := parms[cTreewidth]; ok {
+	if tw, ok := parms[ParmTreewidth]; ok {
 		s.tw = conv.Atoi(tw)
 	}
 }
@@ -41,5 +41,5 @@ func (s *common) ValidateParameters() {
 func (s *common) PrintParameters() {
 	log.Printf(" ========== ALGORITHM PARAMETERS ========== \n")
 	log.Printf("number of variables: %v\n", s.nv)
-	log.Printf("%v: %v\n", cTreewidth, s.tw)
+	log.Printf("%v: %v\n", ParmTreewidth, s.tw)
 }

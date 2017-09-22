@@ -30,9 +30,9 @@ func (s *IterativeSearch) Search() *BNStructure {
 	ord := s.sampleOrder()
 	bn := s.getInitialDAG(ord[:s.tw+1])
 	switch s.searchVariation {
-	case cGreedy:
+	case OpGreedy:
 		s.greedySearch(bn, ord)
-	case cAstar:
+	case OpAstar:
 		panic("not implemented")
 	default:
 		log.Panicf("invalid search variation: '%v'", s.searchVariation)
@@ -43,13 +43,13 @@ func (s *IterativeSearch) Search() *BNStructure {
 // SetDefaultParameters sets parameters to default values
 func (s *IterativeSearch) SetDefaultParameters() {
 	s.common.SetDefaultParameters()
-	s.searchVariation = cGreedy
+	s.searchVariation = OpGreedy
 }
 
 // SetFileParameters sets parameters from input file
 func (s *IterativeSearch) SetFileParameters(parms map[string]string) {
 	s.common.SetFileParameters(parms)
-	if searchVariation, ok := parms[cSearchVariation]; ok {
+	if searchVariation, ok := parms[ParmSearchVariation]; ok {
 		s.searchVariation = searchVariation
 	}
 }
@@ -57,7 +57,7 @@ func (s *IterativeSearch) SetFileParameters(parms map[string]string) {
 // ValidateParameters validates internal parameters
 func (s *IterativeSearch) ValidateParameters() {
 	s.common.ValidateParameters()
-	if !(s.searchVariation == cGreedy || s.searchVariation == cAstar) {
+	if !(s.searchVariation == OpGreedy || s.searchVariation == OpAstar) {
 		log.Panicf("Invalid algorithm variant option: '%v'", s.searchVariation)
 	}
 }
@@ -65,7 +65,7 @@ func (s *IterativeSearch) ValidateParameters() {
 // PrintParameters prints the algorithm's current parameters
 func (s *IterativeSearch) PrintParameters() {
 	s.common.PrintParameters()
-	log.Printf("%v: '%v'\n", cSearchVariation, s.searchVariation)
+	log.Printf("%v: '%v'\n", ParmSearchVariation, s.searchVariation)
 }
 
 // sampleOrder samples a permutation of variables

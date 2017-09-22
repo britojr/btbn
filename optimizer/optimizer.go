@@ -17,15 +17,15 @@ const (
 	AlgIterativeSearch = "iterative" // s16
 
 	// file parameters fields
-	cTreewidth       = "treewidth"
-	cMaxParents      = "max_parents"
-	cNumTrees        = "num_trees"
-	cMutualInfo      = "mutual_info"
-	cSearchVariation = "search_variation"
+	ParmTreewidth       = "treewidth"
+	ParmMaxParents      = "max_parents"
+	ParmNumTrees        = "num_trees"
+	ParmMutualInfo      = "mutual_info"
+	ParmSearchVariation = "search_variation"
 
 	// file parameters fields options
-	cGreedy = "greedy"
-	cAstar  = "astar"
+	OpGreedy = "greedy"
+	OpAstar  = "astar"
 )
 
 // Optimizer defines a structure optimizer algorithm

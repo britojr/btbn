@@ -54,10 +54,10 @@ func (s *SelectSampleSearch) SetDefaultParameters() {
 // SetFileParameters sets parameters from input file
 func (s *SelectSampleSearch) SetFileParameters(parms map[string]string) {
 	s.common.SetFileParameters(parms)
-	if numTrees, ok := parms[cNumTrees]; ok {
+	if numTrees, ok := parms[ParmNumTrees]; ok {
 		s.numTrees = conv.Atoi(numTrees)
 	}
-	if mutInfoFile, ok := parms[cMutualInfo]; ok {
+	if mutInfoFile, ok := parms[ParmMutualInfo]; ok {
 		s.mutInfoFile = mutInfoFile
 	}
 }
@@ -74,8 +74,8 @@ func (s *SelectSampleSearch) ValidateParameters() {
 // PrintParameters prints the algorithm's current parameters
 func (s *SelectSampleSearch) PrintParameters() {
 	s.common.PrintParameters()
-	log.Printf("%v: %v\n", cNumTrees, s.numTrees)
-	log.Printf("%v: '%v'\n", cMutualInfo, s.mutInfoFile)
+	log.Printf("%v: %v\n", ParmNumTrees, s.numTrees)
+	log.Printf("%v: '%v'\n", ParmMutualInfo, s.mutInfoFile)
 }
 
 // selectKTrees samples and selects a given number of ktrees
