@@ -29,7 +29,7 @@ func runStructComm() {
 }
 
 func structureLearning() {
-	log.Printf(" ========== STEP: STRUCTURE OPTIMIZATION ========== \n")
+	log.Printf(" ========== BEGIN STRUCTURE OPTIMIZATION ========== \n")
 	log.Printf("Learning algorithm: '%v'\n", optimizerAlg)
 	log.Printf("Max. iterations: %v\n", numSolutions)
 	log.Printf("Max. time available (sec): %v\n", timeAvailable)
@@ -38,16 +38,17 @@ func structureLearning() {
 	log.Printf("Save solution in: '%v'\n", bnetFile)
 	log.Printf(" -------------------------------------------------- \n")
 
+	log.Println("Reading parameters file")
+	parms := ioutl.ReadYaml(parmFile)
+	maxPa := defMaxPa(parms)
 	log.Println("Reading score cache")
 	scoreCache := scr.Read(scoreFile)
-
 	log.Println("Creating score rankers")
-	// scoreRankers := scr.CreateRankers(scoreRankType, scoreCache, maxPa)
 	scoreRankers := scr.CreateRankers(scoreCache, maxPa)
 	// TODO: dataset will also be nedded when dealing with hidden variables
 
 	log.Println("Creating bounded-treewidth structure learning algorithm")
-	algorithm := optimizer.Create(optimizerAlg, scoreRankers, parmFile)
+	algorithm := optimizer.Create(optimizerAlg, scoreRankers, parms)
 	algorithm.PrintParameters()
 
 	log.Println("Searching bounded-treewidth structure")
@@ -95,4 +96,8 @@ func emptySetScore(rankers []scr.Ranker) (es float64) {
 		es += ranker.ScoreOf(parents)
 	}
 	return
+}
+
+func defMaxPa(parms map[string]string) int {
+	return 0
 }

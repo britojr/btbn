@@ -19,8 +19,8 @@ type IterativeSearch struct {
 }
 
 // NewIterativeSearch creates an instance of the iterative stragegy
-func NewIterativeSearch(scoreRankers []scr.Ranker, parmFile string) *IterativeSearch {
-	s := &IterativeSearch{common: newCommon(scoreRankers, parmFile)}
+func NewIterativeSearch(scoreRankers []scr.Ranker) Optimizer {
+	s := &IterativeSearch{common: newCommon(scoreRankers)}
 	s.prevCliques = make(map[string]struct{})
 	return s
 }

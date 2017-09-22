@@ -11,8 +11,8 @@ type SampleSearch struct {
 }
 
 // NewSampleSearch creates a instance of the sample stragegy
-func NewSampleSearch(scoreRankers []scr.Ranker, parmFile string) *SampleSearch {
-	return &SampleSearch{common: newCommon(scoreRankers, parmFile)}
+func NewSampleSearch(scoreRankers []scr.Ranker) Optimizer {
+	return &SampleSearch{common: newCommon(scoreRankers)}
 }
 
 // Search searchs for a network structure

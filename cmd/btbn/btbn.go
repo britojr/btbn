@@ -22,7 +22,6 @@ var (
 	bnetFile      string // network output file
 	parmFile      string // parameters file for search algorithms
 	optimizerAlg  string // structure optimizer algorithm
-	maxPa         int    // max parents
 	timeAvailable int    // time available to search solution
 	numSolutions  int    // number of iterations
 
@@ -69,7 +68,6 @@ func initSubcommands() {
 	structComm.StringVar(&optimizerAlg, "a", "sample", "structure optimizer algorithm {sample|selected|guided|iterative}")
 	structComm.IntVar(&timeAvailable, "t", 60, "available time to search solution (0->unbounded)")
 	structComm.IntVar(&numSolutions, "i", 1, "max number of iterations (0->unbounded)")
-	structComm.IntVar(&maxPa, "mp", 0, "max number of parents (0->unbounded)")
 
 	// mutinf subcommand Flags
 	mutinfComm.BoolVar(&verbose, "v", false, "prints detailed steps")

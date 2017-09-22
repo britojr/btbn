@@ -29,8 +29,8 @@ type SelectSampleSearch struct {
 }
 
 // NewSelectSampleSearch creates a instance of the selected sample stragegy
-func NewSelectSampleSearch(scoreRankers []scr.Ranker, parmFile string) *SelectSampleSearch {
-	s := &SelectSampleSearch{common: newCommon(scoreRankers, parmFile)}
+func NewSelectSampleSearch(scoreRankers []scr.Ranker) Optimizer {
+	s := &SelectSampleSearch{common: newCommon(scoreRankers)}
 	s.kernelZero = stats.GaussianKernel(0.0)
 	return s
 }
