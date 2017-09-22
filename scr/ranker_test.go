@@ -59,12 +59,12 @@ VAR C
 	for _, tt := range cases {
 		fname := helperGetTempFile(tt.content, "rk_test")
 		defer os.Remove(fname)
-		sr := CreateRankers(Read(fname), tt.maxPa)
-		parents := varset.New(len(sr))
+		sr := CreateRanker(Read(fname), tt.maxPa)
+		parents := varset.New(sr.Size())
 		for _, v := range tt.vars {
 			parents.Set(v)
 		}
-		got := sr[tt.x].ScoreOf(parents)
+		got := sr.ScoreOf(tt.x, parents)
 		if tt.scor != got {
 			t.Errorf("wrong scores (%v)!=(%v)", tt.scor, got)
 		}
@@ -112,12 +112,12 @@ VAR C
 	for _, tt := range cases {
 		fname := helperGetTempFile(tt.content, "rk_test")
 		defer os.Remove(fname)
-		sr := CreateRankers(Read(fname), tt.maxPa)
-		restric := varset.New(len(sr))
+		sr := CreateRanker(Read(fname), tt.maxPa)
+		restric := varset.New(sr.Size())
 		for _, v := range tt.restric {
 			restric.Set(v)
 		}
-		gotPa, gotSc := sr[tt.x].BestIn(restric)
+		gotPa, gotSc := sr.BestIn(tt.x, restric)
 		if tt.wantSc != gotSc {
 			t.Errorf("wrong scores (%v)!=(%v)", tt.wantSc, gotSc)
 		}

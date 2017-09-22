@@ -8,65 +8,75 @@ import (
 
 // Ranker defines a list of best scores for a given variable
 type Ranker interface {
-	BestIn(restrictSet varset.Varset) (parents varset.Varset, localScore float64)
-	BestInLim(restrictSet varset.Varset, maxPa int) (parents varset.Varset, localScore float64)
-	ScoreOf(parents varset.Varset) float64
+	BestIn(v int, restric varset.Varset) (parents varset.Varset, localScore float64)
+	ScoreOf(v int, parents varset.Varset) float64
+	Size() int
 }
 
-// CreateRankers creates array of rankers, one for each variable
-func CreateRankers(cache *Cache, maxPa int) []Ranker {
-	rs := []Ranker(nil)
+// CreateRanker creates a ranker for the variables given by cache
+func CreateRanker(cache *Cache, maxPa int) Ranker {
+	r := new(rankList)
 	for i := 0; i < cache.Nvar(); i++ {
-		rs = append(rs, NewListRanker(i, cache, maxPa))
+		r.vars = append(r.vars, newVarRanker(i, cache, maxPa))
 	}
-	return rs
+	return r
 }
 
-// ListRanker trivial implementation of score ranker
-type ListRanker struct {
+type rankList struct {
+	vars []*varRanker
+}
+
+// Size returns the number of variables in the ranker
+func (r *rankList) Size() int {
+	return len(r.vars)
+}
+
+// ScoreOf returns the score of a family
+func (r *rankList) ScoreOf(v int, parents varset.Varset) float64 {
+	return r.vars[v].scoreOf(parents)
+}
+
+// BestIn finds the highest scoring parent set that is contained in the given restriction set
+func (r *rankList) BestIn(v int, restric varset.Varset) (parents varset.Varset, scr float64) {
+	return r.vars[v].bestIn(restric)
+}
+
+type varRanker struct {
 	varIndex  int
 	scoreList []*Record
 	scoreMap  map[string]float64
 }
 
-// NewListRanker creates new listRanker
-func NewListRanker(varIndex int, cache *Cache, maxPa int) *ListRanker {
-	m := &ListRanker{}
-	m.varIndex = varIndex
-	m.scoreMap = cache.Scores(varIndex)
-	m.scoreList = make([]*Record, 0, len(m.scoreMap))
-	for s, scor := range m.scoreMap {
+func newVarRanker(v int, cache *Cache, maxPa int) *varRanker {
+	r := new(varRanker)
+	r.varIndex = v
+	r.scoreMap = cache.Scores(v)
+	r.scoreList = make([]*Record, 0, len(r.scoreMap))
+	for s, score := range r.scoreMap {
 		pset := varset.New(cache.Nvar())
 		pset.LoadHashString(s)
 		if maxPa <= 0 || pset.Count() <= maxPa {
-			m.scoreList = append(m.scoreList, NewRecord(scor, pset))
+			r.scoreList = append(r.scoreList, NewRecord(score, pset))
 		}
 	}
-	SortRecords(m.scoreList)
-	return m
+	SortRecords(r.scoreList)
+	return r
 }
 
-// BestIn finds the highest scoring parent set that is contained in the given restriction set
-func (m *ListRanker) BestIn(restric varset.Varset) (parents varset.Varset, scr float64) {
-	return m.BestInLim(restric, restric.Count())
-}
-
-// BestInLim finds the highest scoring parent set that is contained in the given restriction set
-// and respects a given max parent limit
-func (m *ListRanker) BestInLim(restric varset.Varset, maxPa int) (parents varset.Varset, scr float64) {
-	if len(m.scoreList) == 0 {
+func (r *varRanker) bestIn(restric varset.Varset) (parents varset.Varset, score float64) {
+	if len(r.scoreList) == 0 {
 		panic(fmt.Errorf("Score list is empty"))
 	}
-	for _, v := range m.scoreList {
+	for _, v := range r.scoreList {
 		parents = v.Data().(varset.Varset)
-		if restric.IsSuperSet(parents) && parents.Count() <= maxPa {
+		// if restric.IsSuperSet(parents) && parents.Count() <= maxPa {
+		if restric.IsSuperSet(parents) {
 			return parents, v.score
 		}
 	}
-	panic(fmt.Errorf("Can't find score for variable %v with restriction %v", m.varIndex, restric))
+	panic(fmt.Errorf("Can't find score for variable %v with restriction %v", r.varIndex, restric))
 }
 
-// ScoreOf returns the score of a given set of parents
-func (m *ListRanker) ScoreOf(parents varset.Varset) float64 {
-	return m.scoreMap[parents.DumpHashString()]
+func (r *varRanker) scoreOf(parents varset.Varset) float64 {
+	return r.scoreMap[parents.DumpHashString()]
 }
