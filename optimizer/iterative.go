@@ -19,8 +19,8 @@ type IterativeSearch struct {
 }
 
 // NewIterativeSearch creates an instance of the iterative stragegy
-func NewIterativeSearch(scoreRankers []scr.Ranker) Optimizer {
-	s := &IterativeSearch{common: newCommon(scoreRankers)}
+func NewIterativeSearch(scoreRanker scr.Ranker) Optimizer {
+	s := &IterativeSearch{common: newCommon(scoreRanker)}
 	s.prevCliques = make(map[string]struct{})
 	return s
 }
@@ -86,9 +86,9 @@ func (s *IterativeSearch) sampleOrder() []int {
 
 func (s *IterativeSearch) getInitialDAG(vars []int) *BNStructure {
 	// TODO: replace this for an exact method
-	bestBn := DAGapproximatedLearning(ktree.New(vars, -1, -1), s.scoreRankers)
+	bestBn := DAGapproximatedLearning(ktree.New(vars, -1, -1), s.scoreRanker)
 	for i := 0; i < 50; i++ {
-		currBn := DAGapproximatedLearning(ktree.New(vars, -1, -1), s.scoreRankers)
+		currBn := DAGapproximatedLearning(ktree.New(vars, -1, -1), s.scoreRanker)
 		if currBn.Better(bestBn) {
 			bestBn = currBn
 		}
@@ -106,10 +106,9 @@ func (s *IterativeSearch) greedySearch(bn *BNStructure, ord []int) *BNStructure 
 	ord = ord[s.tw+1:]
 	for len(ord) > 0 {
 		v := ord[0]
-		// TODO: no need to use this limit since the restriction is a (k+1)-clique
-		bestPs, bestScr := s.scoreRankers[v].BestInLim(clqs[0], s.tw)
+		bestPs, bestScr := s.scoreRanker.BestIn(v, clqs[0])
 		for _, clq := range clqs[1:] {
-			ps, scr := s.scoreRankers[v].BestInLim(clq, s.tw)
+			ps, scr := s.scoreRanker.BestIn(v, clq)
 			if scr > bestScr {
 				bestScr, bestPs = scr, ps
 			}

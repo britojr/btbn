@@ -37,16 +37,16 @@ type Optimizer interface {
 	ValidateParameters()
 }
 
-var optimizerCreators = map[string]func([]scr.Ranker) Optimizer{
+var optimizerCreators = map[string]func(scr.Ranker) Optimizer{
 	AlgSampleSearch:    NewSampleSearch,
 	AlgSelectedSample:  NewSelectSampleSearch,
 	AlgIterativeSearch: NewIterativeSearch,
 }
 
 // Create creates a structure optimizer algorithm
-func Create(optimizerAlg string, scoreRankers []scr.Ranker, parms map[string]string) (opt Optimizer) {
+func Create(optimizerAlg string, scoreRanker scr.Ranker, parms map[string]string) (opt Optimizer) {
 	if create, ok := optimizerCreators[optimizerAlg]; ok {
-		opt = create(scoreRankers)
+		opt = create(scoreRanker)
 		setParameters(opt, parms)
 		return opt
 	}

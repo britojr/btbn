@@ -29,8 +29,8 @@ type SelectSampleSearch struct {
 }
 
 // NewSelectSampleSearch creates a instance of the selected sample stragegy
-func NewSelectSampleSearch(scoreRankers []scr.Ranker) Optimizer {
-	s := &SelectSampleSearch{common: newCommon(scoreRankers)}
+func NewSelectSampleSearch(scoreRanker scr.Ranker) Optimizer {
+	s := &SelectSampleSearch{common: newCommon(scoreRanker)}
 	s.kernelZero = stats.GaussianKernel(0.0)
 	return s
 }
@@ -40,7 +40,7 @@ func (s *SelectSampleSearch) Search() *BNStructure {
 	if len(s.tkList) == 0 {
 		s.selectKTrees()
 	}
-	bn := DAGapproximatedLearning(s.tkList[0].Data().(*ktree.Ktree), s.scoreRankers)
+	bn := DAGapproximatedLearning(s.tkList[0].Data().(*ktree.Ktree), s.scoreRanker)
 	s.tkList = s.tkList[1:]
 	return bn
 }
@@ -127,7 +127,7 @@ func (s *SelectSampleSearch) computeIScore(tk *ktree.Ktree) float64 {
 			if v != u {
 				mi += s.mutInfo.Get(u, v)
 			}
-			_, newScore := s.scoreRankers[v].BestIn(restric)
+			_, newScore := s.scoreRanker.BestIn(v, restric)
 			if partialScores[v] == 0 || newScore > partialScores[v] {
 				partialScores[v] = newScore
 			}

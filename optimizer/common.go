@@ -9,15 +9,15 @@ import (
 
 // common defines optimizer's commom/default behaviours
 type common struct {
-	tw           int          // treewidth
-	nv           int          // number of variables
-	scoreRankers []scr.Ranker // score rankers for each variable
+	tw          int        // treewidth
+	nv          int        // number of variables
+	scoreRanker scr.Ranker // score rankers for each variable
 }
 
-func newCommon(scoreRankers []scr.Ranker) *common {
+func newCommon(scoreRanker scr.Ranker) *common {
 	s := new(common)
-	s.scoreRankers = scoreRankers
-	s.nv = len(s.scoreRankers)
+	s.scoreRanker = scoreRanker
+	s.nv = s.scoreRanker.Size()
 	return s
 }
 

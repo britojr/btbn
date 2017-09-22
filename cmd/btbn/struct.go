@@ -43,14 +43,13 @@ func structureLearning() {
 	parms := ioutl.ReadYaml(parmFile)
 	maxPa := getMaxPa(parms)
 	log.Printf("%v: '%v'\n", optimizer.ParmMaxParents, maxPa)
-	log.Println("Reading score cache")
+	log.Println("Reading pre-computed scores file")
 	scoreCache := scr.Read(scoreFile)
-	log.Println("Creating score rankers")
-	scoreRankers := scr.CreateRankers(scoreCache, maxPa)
+	scoreRanker := scr.CreateRanker(scoreCache, maxPa)
 	// TODO: dataset will also be nedded when dealing with hidden variables
 
 	log.Println("Creating bounded-treewidth structure learning algorithm")
-	algorithm := optimizer.Create(optimizerAlg, scoreRankers, parms)
+	algorithm := optimizer.Create(optimizerAlg, scoreRanker, parms)
 	algorithm.PrintParameters()
 
 	log.Println("Searching bounded-treewidth structure")
@@ -59,7 +58,7 @@ func structureLearning() {
 	elapsed := time.Since(start)
 
 	totScore := solution.Score()
-	empScore := emptySetScore(scoreRankers)
+	empScore := emptySetScore(scoreRanker)
 	log.Printf(" ========== SOLUTION ============================ \n")
 	if solution == nil {
 		log.Printf("Couldn't find any solution in the given time!\n")
@@ -92,10 +91,10 @@ func writeSolution(fname string, bn *optimizer.BNStructure) {
 }
 
 // emptySetScore calculates the total score for when the parents sets are empty
-func emptySetScore(rankers []scr.Ranker) (es float64) {
-	parents := varset.New(len(rankers))
-	for _, ranker := range rankers {
-		es += ranker.ScoreOf(parents)
+func emptySetScore(ranker scr.Ranker) (es float64) {
+	parents := varset.New(ranker.Size())
+	for v := 0; v < ranker.Size(); v++ {
+		es += ranker.ScoreOf(v, parents)
 	}
 	return
 }

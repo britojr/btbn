@@ -14,12 +14,12 @@ var seed = func() int64 {
 }
 
 // DAGapproximatedLearning learns a dag approximatedly from a  ktree
-func DAGapproximatedLearning(tk *ktree.Ktree, rankers []scr.Ranker) (bn *BNStructure) {
+func DAGapproximatedLearning(tk *ktree.Ktree, ranker scr.Ranker) (bn *BNStructure) {
 	// Initialize the local scores for empty list of parents
-	bn = NewBNStructure(len(rankers))
-	parents := varset.New(len(rankers))
-	for x := 0; x < len(rankers); x++ {
-		bn.SetParents(x, parents, rankers[x].ScoreOf(parents))
+	bn = NewBNStructure(ranker.Size())
+	parents := varset.New(ranker.Size())
+	for x := 0; x < ranker.Size(); x++ {
+		bn.SetParents(x, parents, ranker.ScoreOf(x, parents))
 	}
 
 	// Sample a partial order from the ktree
@@ -27,18 +27,18 @@ func DAGapproximatedLearning(tk *ktree.Ktree, rankers []scr.Ranker) (bn *BNStruc
 
 	// Find the parents sets that maximize the score and respect the partial order
 	for _, pOrd := range pOrders {
-		setParentsFromOrder(pOrd, rankers, bn)
+		setParentsFromOrder(pOrd, ranker, bn)
 	}
 	return bn
 }
 
-func setParentsFromOrder(order partialOrder, rankers []scr.Ranker, bn *BNStructure) {
-	restric := varset.New(len(rankers))
+func setParentsFromOrder(order partialOrder, ranker scr.Ranker, bn *BNStructure) {
+	restric := varset.New(ranker.Size())
 	for _, v := range order.vars[:order.ini] {
 		restric.Set(v)
 	}
 	for _, v := range order.vars[order.ini:] {
-		newParents, newScore := rankers[v].BestIn(restric)
+		newParents, newScore := ranker.BestIn(v, restric)
 		if newScore > bn.LocalScore(v) {
 			bn.SetParents(v, newParents, newScore)
 		}
