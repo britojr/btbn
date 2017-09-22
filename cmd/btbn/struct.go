@@ -42,6 +42,7 @@ func structureLearning() {
 	log.Println("Reading parameters file")
 	parms := ioutl.ReadYaml(parmFile)
 	maxPa := getMaxPa(parms)
+	log.Printf("%v: '%v'\n", optimizer.ParmMaxParents, maxPa)
 	log.Println("Reading score cache")
 	scoreCache := scr.Read(scoreFile)
 	log.Println("Creating score rankers")
