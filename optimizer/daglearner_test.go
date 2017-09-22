@@ -15,10 +15,20 @@ type fakeRanker struct {
 
 func (r *fakeRanker) BestIn(v int, restric varset.Varset) (varset.Varset, float64) {
 	ps := varset.New(0).SetInts(restric.DumpAsInts())
-	return ps, float64(ps.Count())
+	return ps, r.ScoreOf(v, ps)
 }
+
+// func (r *fakeRanker) ScoreOf(v int, parents varset.Varset) float64 {
+// 	return float64(parents.Count())
+// }
 func (r *fakeRanker) ScoreOf(v int, parents varset.Varset) float64 {
-	return float64(parents.Count())
+	c := 0
+	for _, u := range parents.DumpAsInts() {
+		if u > v {
+			c++
+		}
+	}
+	return float64(c)
 }
 func (r *fakeRanker) Size() int {
 	return r.n
