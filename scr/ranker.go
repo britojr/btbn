@@ -9,6 +9,7 @@ import (
 // Ranker defines a list of best scores for a given variable
 type Ranker interface {
 	BestIn(v int, restric varset.Varset) (parents varset.Varset, localScore float64)
+	BestInLim(v int, restric varset.Varset, maxPa int) (parents varset.Varset, localScore float64)
 	ScoreOf(v int, parents varset.Varset) float64
 	Size() int
 }
@@ -38,7 +39,13 @@ func (r *rankList) ScoreOf(v int, parents varset.Varset) float64 {
 
 // BestIn finds the highest scoring parent set that is contained in the given restriction set
 func (r *rankList) BestIn(v int, restric varset.Varset) (parents varset.Varset, scr float64) {
-	return r.vars[v].bestIn(restric)
+	return r.vars[v].bestIn(restric, restric.Count())
+}
+
+// BestInLim finds the highest scoring parent set that is contained in the given restriction set
+// and respects a maximum size of the parent set
+func (r *rankList) BestInLim(v int, restric varset.Varset, maxPa int) (parents varset.Varset, scr float64) {
+	return r.vars[v].bestIn(restric, maxPa)
 }
 
 type varRanker struct {
@@ -63,14 +70,14 @@ func newVarRanker(v int, cache *Cache, maxPa int) *varRanker {
 	return r
 }
 
-func (r *varRanker) bestIn(restric varset.Varset) (parents varset.Varset, score float64) {
+func (r *varRanker) bestIn(restric varset.Varset, maxPa int) (parents varset.Varset, score float64) {
 	if len(r.scoreList) == 0 {
 		panic(fmt.Errorf("Score list is empty"))
 	}
 	for _, v := range r.scoreList {
 		parents = v.Data().(varset.Varset)
-		// if restric.IsSuperSet(parents) && parents.Count() <= maxPa {
-		if restric.IsSuperSet(parents) {
+		if restric.IsSuperSet(parents) && parents.Count() <= maxPa {
+			// if restric.IsSuperSet(parents) {
 			return parents, v.score
 		}
 	}

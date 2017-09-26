@@ -106,9 +106,11 @@ func (s *IterativeSearch) greedySearch(bn *BNStructure, ord []int) *BNStructure 
 	ord = ord[s.tw+1:]
 	for len(ord) > 0 {
 		v := ord[0]
-		bestPs, bestScr := s.scoreRanker.BestIn(v, clqs[0])
+		// the list has cliques of size k+1, hence v should have at most k parents
+		// in order to form another k+1 clique
+		bestPs, bestScr := s.scoreRanker.BestInLim(v, clqs[0], s.tw)
 		for _, clq := range clqs[1:] {
-			ps, scr := s.scoreRanker.BestIn(v, clq)
+			ps, scr := s.scoreRanker.BestInLim(v, clq, s.tw)
 			if scr > bestScr {
 				bestScr, bestPs = scr, ps
 			}

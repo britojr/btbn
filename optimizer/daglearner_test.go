@@ -17,6 +17,10 @@ func (r *fakeRanker) BestIn(v int, restric varset.Varset) (varset.Varset, float6
 	ps := varset.New(0).SetInts(restric.DumpAsInts())
 	return ps, r.ScoreOf(v, ps)
 }
+func (r *fakeRanker) BestInLim(v int, restric varset.Varset, maxPa int) (varset.Varset, float64) {
+	ps := varset.New(0).SetInts(restric.DumpAsInts()[:maxPa])
+	return ps, r.ScoreOf(v, ps)
+}
 
 // func (r *fakeRanker) ScoreOf(v int, parents varset.Varset) float64 {
 // 	return float64(parents.Count())
