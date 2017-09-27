@@ -142,7 +142,9 @@ type searchNode struct {
 }
 
 func (s *IterativeSearch) astarSearch(bn *BNStructure, ord []int) *BNStructure {
-	state := s.getStartState(bn, ord)
+	s.order = ord
+	s.computeHeuristic()
+	state := s.getStartState(bn)
 	rs := []*scr.Record{scr.NewRecord(-(state.pscor + s.heuristic(state)), &searchNode{state, nil, state.pscor})}
 	pq := scr.NewRecordHeap(&rs, func(i, j int) bool { return rs[i].Score() < rs[j].Score() })
 	heap.Init(pq)
@@ -184,27 +186,29 @@ func (s *IterativeSearch) makeSolution(bn *BNStructure, nd *searchNode) *BNStruc
 	return bn
 }
 
-func (s *IterativeSearch) getStartState(bn *BNStructure, ord []int) *problemState {
-	s.order = ord
-	s.hval = make([]float64, len(ord))
+func (s *IterativeSearch) computeHeuristic() {
+	s.hval = make([]float64, len(s.order))
 	restric := varset.New(s.nv)
-	for _, u := range ord {
+	for _, u := range s.order {
 		restric.Set(u)
 	}
 	for i := len(s.hval) - 1; i > s.tw; i-- {
-		restric.Clear(ord[i])
-		_, scor := s.scoreRanker.BestIn(ord[i], restric)
+		restric.Clear(s.order[i])
+		_, scor := s.scoreRanker.BestIn(s.order[i], restric)
 		s.hval[i] = scor
 		if i < len(s.hval)-1 {
 			s.hval[i] += s.hval[i+1]
 		}
 	}
+}
+
+func (s *IterativeSearch) getStartState(bn *BNStructure) *problemState {
 	st := new(problemState)
 	st.v = -1
 	st.pset = nil
 	st.next = s.tw + 1
-	st.clqs = append(st.clqs, ord[:s.tw+1])
-	for _, v := range ord[:s.tw+1] {
+	st.clqs = append(st.clqs, s.order[:s.tw+1])
+	for _, v := range s.order[:s.tw+1] {
 		st.pscor += bn.LocalScore(v)
 	}
 	return st
