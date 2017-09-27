@@ -1,6 +1,7 @@
 package optimizer
 
 import (
+	"container/heap"
 	"fmt"
 	"log"
 	"math/rand"
@@ -142,15 +143,34 @@ type searchNode struct {
 
 func (s *IterativeSearch) astarSearch(bn *BNStructure, ord []int) *BNStructure {
 	state := s.getStartState(bn, ord)
-	pq := &scr.RecordSlice{scr.NewRecord(state.pscor+s.heuristic(state), &searchNode{state, nil, state.pscor})}
+	rs := []*scr.Record{scr.NewRecord(-(state.pscor + s.heuristic(state)), &searchNode{state, nil, state.pscor})}
+	pq := scr.NewRecordHeap(&rs, func(i, j int) bool { return rs[i].Score() < rs[j].Score() })
+	heap.Init(pq)
+	cpush, cpop := 0, 0
+	fmt.Printf("in: %v\n", rs[0].Score())
 	for pq.Len() > 0 {
-		nd := pq.Pop().(*scr.Record).Data().(*searchNode)
+		// uncomment:
+		// nd := heap.Pop(pq).(*scr.Record).Data().(*searchNode)
+		// remove:
+		aux := heap.Pop(pq).(*scr.Record)
+		// fmt.Printf("pop: %v | %v\n", aux.Score(), aux.Data().(*searchNode).state.clqs)
+		cpop++
+		nd := aux.Data().(*searchNode)
+		// remove up
 		if s.isGoalState(nd.state) {
+			fmt.Printf(">>> tot push:%v, pop:%v\n", cpush, cpop)
 			return s.makeSolution(bn, nd)
 		}
 		for _, succ := range s.stateSuccessors(nd.state) {
 			ch := &searchNode{succ, nd, nd.score + succ.pscor}
-			pq.Push(scr.NewRecord(ch.score+s.heuristic(succ), ch))
+			// uncomment:
+			// heap.Push(pq, scr.NewRecord(-(ch.score+s.heuristic(succ)), ch))
+			// remove:
+			aux := scr.NewRecord(-(ch.score + s.heuristic(succ)), ch)
+			// fmt.Printf("  push: %v | %v\n", aux.Score(), aux.Data().(*searchNode).state.clqs)
+			heap.Push(pq, aux)
+			cpush++
+			// remove up
 		}
 	}
 	return nil
@@ -204,20 +224,24 @@ func (s *IterativeSearch) heuristic(ps *problemState) float64 {
 func (s *IterativeSearch) stateSuccessors(ps *problemState) (succ []*problemState) {
 	v := s.order[ps.next]
 	clique := ps.clqs[0]
-	succ = append(succ, s.successorClique(clique, v, ps)...)
+	succ = append(succ, s.successorClique(clique, []int{v}, ps)...)
 	for _, clq := range ps.clqs[1:] {
-		succ = append(succ, s.successorClique(clq[1:], v, ps)...)
+		succ = append(succ, s.successorClique(clq[1:], []int{v, clq[0]}, ps)...)
 	}
 	return
 }
 
-func (s *IterativeSearch) successorClique(clique []int, v int, ps *problemState) (succ []*problemState) {
-	allset := varset.New(s.nv).Set(v)
+func (s *IterativeSearch) successorClique(clique []int, pref []int, ps *problemState) (succ []*problemState) {
+	v := pref[0]
+	allset := varset.New(s.nv)
 	for _, u := range clique {
 		allset.Set(u)
 	}
+	for _, u := range pref[1:] {
+		allset.Set(u)
+	}
 	for i, u := range clique {
-		clq := append([]int{v}, clique[:i]...)
+		clq := append(pref, clique[:i]...)
 		clq = append(clq, clique[i+1:]...)
 		restric := allset.Clone().Clear(u)
 		pset, pscor := s.scoreRanker.BestIn(v, restric)
