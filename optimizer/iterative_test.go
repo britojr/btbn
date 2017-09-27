@@ -2,9 +2,13 @@ package optimizer
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"sort"
 	"testing"
+
+	"github.com/britojr/btbn/scr"
+	"github.com/britojr/btbn/varset"
 )
 
 func TestGetInitialDAG(t *testing.T) {
@@ -76,3 +80,154 @@ func TestSampleOrder(t *testing.T) {
 		}
 	}
 }
+
+func TestGreedySearch(t *testing.T) {
+	fname := helperGetTempFile(fixedScores, "iter_test")
+	defer os.Remove(fname)
+	rk := scr.CreateRanker(scr.Read(fname), 10)
+	cases := []struct {
+		ranker  scr.Ranker
+		initps  map[int]varset.Varset
+		ord     []int
+		n, k    int
+		wantps  map[int]varset.Varset
+		wantscr float64
+	}{{
+		ranker: rk, ord: []int{0, 1, 2, 3, 4, 5, 6}, n: rk.Size(), k: 2,
+		initps: map[int]varset.Varset{
+			0: varset.New(rk.Size()),
+			1: varset.New(rk.Size()).SetInts([]int{0, 2}),
+			2: varset.New(rk.Size()),
+		},
+		wantps: map[int]varset.Varset{
+			0: varset.New(rk.Size()),
+			1: varset.New(rk.Size()).SetInts([]int{0, 2}),
+			2: varset.New(rk.Size()),
+			3: varset.New(rk.Size()).SetInts([]int{0, 2}),
+			4: varset.New(rk.Size()).SetInts([]int{0, 2}),
+			5: varset.New(rk.Size()).SetInts([]int{0, 1}),
+			6: varset.New(rk.Size()).SetInts([]int{5, 1}),
+		},
+		wantscr: -380,
+	}}
+	for _, tt := range cases {
+		bn := helperGetBN(tt.initps, tt.ranker)
+		s := &IterativeSearch{common: newCommon(tt.ranker)}
+		s.tw, s.nv = tt.k, tt.n
+		s.greedySearch(bn, tt.ord)
+		for i := 0; i < tt.ranker.Size(); i++ {
+			if !tt.wantps[i].Equal(bn.Parents(i)) {
+				t.Errorf("wrong parents for %v: (%v)!=(%v)", i, tt.wantps[i], bn.Parents(i))
+			}
+		}
+		if tt.wantscr != bn.Score() {
+			t.Errorf("wrong total score (%v)!=(%v)", tt.wantscr, bn.Score())
+		}
+	}
+}
+
+func TestAstarSearch(t *testing.T) {
+	fname := helperGetTempFile(fixedScores, "iter_test")
+	defer os.Remove(fname)
+	rk := scr.CreateRanker(scr.Read(fname), 10)
+	cases := []struct {
+		ranker  scr.Ranker
+		initps  map[int]varset.Varset
+		ord     []int
+		n, k    int
+		wantps  map[int]varset.Varset
+		wantscr float64
+	}{{
+		ranker: rk, ord: []int{0, 1, 2, 3, 4, 5, 6}, n: rk.Size(), k: 2,
+		initps: map[int]varset.Varset{
+			0: varset.New(rk.Size()),
+			1: varset.New(rk.Size()).SetInts([]int{0, 2}),
+			2: varset.New(rk.Size()),
+		},
+		wantps: map[int]varset.Varset{
+			0: varset.New(rk.Size()),
+			1: varset.New(rk.Size()).SetInts([]int{0, 2}),
+			2: varset.New(rk.Size()),
+			3: varset.New(rk.Size()).SetInts([]int{0, 2}),
+			4: varset.New(rk.Size()).SetInts([]int{3, 2}),
+			5: varset.New(rk.Size()).SetInts([]int{0, 1}),
+			6: varset.New(rk.Size()).SetInts([]int{3, 4}),
+		},
+		wantscr: -350,
+	}}
+	for _, tt := range cases {
+		bn := helperGetBN(tt.initps, tt.ranker)
+		s := &IterativeSearch{common: newCommon(tt.ranker)}
+		s.tw, s.nv = tt.k, tt.n
+		s.astarSearch(bn, tt.ord)
+		for i := 0; i < tt.ranker.Size(); i++ {
+			if !tt.wantps[i].Equal(bn.Parents(i)) {
+				t.Errorf("wrong parents for %v: (%v)!=(%v)", i, tt.wantps[i], bn.Parents(i))
+			}
+		}
+		if tt.wantscr != bn.Score() {
+			t.Errorf("wrong total score (%v)!=(%v)", tt.wantscr, bn.Score())
+		}
+	}
+}
+
+func helperGetBN(psets map[int]varset.Varset, ranker scr.Ranker) *BNStructure {
+	bn := NewBNStructure(ranker.Size())
+	emp := varset.New(ranker.Size())
+	for i := 0; i < bn.Size(); i++ {
+		if pset, ok := psets[i]; ok {
+			bn.SetParents(i, pset, ranker.ScoreOf(i, pset))
+		} else {
+			bn.SetParents(i, emp, ranker.ScoreOf(i, emp))
+		}
+	}
+	return bn
+}
+
+var fixedScores = `META pss_version = 0.1
+VAR 0
+-100
+
+VAR 1
+-100
+-20 0 2
+
+VAR 2
+-100
+-10 0
+
+VAR 3
+-100
+-80 0 1
+-20 0 2
+-80 1 2
+
+VAR 4
+-100
+-80 0 1
+-60 0 2
+-80 1 2
+-70 3 0
+-70 3 1
+-70 3 2
+
+VAR 5
+-100
+-20 0 1
+-80 0 2
+-80 1 2
+-80 3 0
+-80 3 1
+-80 3 2
+
+VAR 6
+-100
+-70 0 1
+-80 0 2
+-80 1 2
+-80 3 0
+-20 4 3
+-80 3 2
+-60 5 1
+-50 5 2
+`
