@@ -57,16 +57,16 @@ func structureLearning() {
 	solution := optimizer.Search(algorithm, numSolutions, timeAvailable)
 	elapsed := time.Since(start)
 
-	totScore := solution.Score()
-	empScore := emptySetScore(scoreRanker)
 	log.Printf(" ========== SOLUTION ============================ \n")
 	if solution == nil {
 		log.Printf("Couldn't find any solution in the given time!\n")
-	} else {
-		log.Printf("Time: %v\n", elapsed)
-		log.Printf("Best Score: %.6f\n", totScore)
-		log.Printf("Normalized: %.6f\n", (totScore-empScore)/math.Abs(empScore))
+		os.Exit(0)
 	}
+	totScore := solution.Score()
+	empScore := emptySetScore(scoreRanker)
+	log.Printf("Time: %v\n", elapsed)
+	log.Printf("Best Score: %.6f\n", totScore)
+	log.Printf("Normalized: %.6f\n", (totScore-empScore)/math.Abs(empScore))
 	log.Printf(" -------------------------------------------------- \n")
 
 	if len(bnetFile) > 0 {
