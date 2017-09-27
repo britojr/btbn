@@ -66,7 +66,7 @@ func newVarRanker(v int, cache *Cache, maxPa int) *varRanker {
 			r.scoreList = append(r.scoreList, NewRecord(score, pset))
 		}
 	}
-	SortRecords(r.scoreList)
+	SortRecords(r.scoreList, true)
 	return r
 }
 

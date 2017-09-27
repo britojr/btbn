@@ -9,10 +9,12 @@ type Record struct {
 }
 
 // SortRecords sorts a score record by descending score
-func SortRecords(rs []*Record) {
-	sort.Slice(rs, func(i int, j int) bool {
-		return rs[i].score > rs[j].score
-	})
+func SortRecords(rs []*Record, descending bool) {
+	f := func(i, j int) bool { return rs[i].score < rs[j].score }
+	if descending {
+		f = func(i, j int) bool { return rs[i].score > rs[j].score }
+	}
+	sort.Slice(rs, f)
 }
 
 // NewRecord returns record data
@@ -34,7 +36,7 @@ func (r *Record) Score() float64 {
 type RecordSlice []*Record
 
 func (rs RecordSlice) Len() int           { return len(rs) }
-func (rs RecordSlice) Less(i, j int) bool { return rs[i].Score() > rs[j].Score() }
+func (rs RecordSlice) Less(i, j int) bool { return rs[i].Score() < rs[j].Score() }
 func (rs RecordSlice) Swap(i, j int)      { rs[i], rs[j] = rs[j], rs[i] }
 
 // Push appends a record to record slice

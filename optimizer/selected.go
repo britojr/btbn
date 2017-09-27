@@ -95,7 +95,7 @@ func (s *SelectSampleSearch) selectKTrees() {
 		}
 		s.tkList = append(s.tkList, scr.NewRecord(iscr, tk))
 	}
-	scr.SortRecords(s.tkList)
+	scr.SortRecords(s.tkList, true)
 }
 
 func (s *SelectSampleSearch) acceptTree(iscr float64, r *rand.Rand) bool {
