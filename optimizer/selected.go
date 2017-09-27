@@ -166,5 +166,6 @@ func CodeDistance(C1, C2 *codec.Code) float64 {
 	dq := stats.IntsLNormDiff(C1.Q, C2.Q, 2)
 	dp := stats.IntsLNormDiff(C1.S.P, C2.S.P, 2)
 	dl := stats.IntsLNormDiff(C1.S.L, C2.S.L, 2)
-	return dq + math.Abs(dp-dl)
+	// return dq + math.Abs(dp-dl)
+	return dq + dp + dl
 }
