@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"sort"
 
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
@@ -74,14 +73,12 @@ func (s *IterativeSearch) PrintParameters() {
 }
 
 // sampleOrder samples a permutation of variables
-// rejecting repeated k+1 initial variables that already occured in previous samples
+// rejecting repeated orders (k+1 to forward) that already occured on previous samples
 func (s *IterativeSearch) sampleOrder() []int {
 	r := rand.New(rand.NewSource(seed()))
 	for {
 		ord := r.Perm(s.nv)
-		// key := varset.New(s.nv).SetInts(ord[:s.tw+1]).DumpHashString()
-		sort.Ints(ord[:s.tw+1])
-		key := fmt.Sprint(ord[:s.tw+1])
+		key := fmt.Sprint(ord[s.tw+1:])
 		if _, ok := s.prevCliques[key]; !ok {
 			s.prevCliques[key] = struct{}{}
 			return ord

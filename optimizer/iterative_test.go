@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"sort"
 	"testing"
 
 	"github.com/britojr/btbn/scr"
@@ -51,17 +50,28 @@ func TestSampleOrder(t *testing.T) {
 		only []int
 	}{{
 		5, 2, map[string]struct{}{
-			fmt.Sprint([]int{0, 1, 2}): struct{}{},
-			fmt.Sprint([]int{0, 1, 3}): struct{}{},
-			fmt.Sprint([]int{0, 1, 4}): struct{}{},
-			fmt.Sprint([]int{0, 2, 3}): struct{}{},
-			fmt.Sprint([]int{0, 2, 4}): struct{}{},
-			fmt.Sprint([]int{0, 3, 4}): struct{}{},
-			fmt.Sprint([]int{1, 2, 3}): struct{}{},
-			fmt.Sprint([]int{1, 3, 4}): struct{}{},
-			fmt.Sprint([]int{2, 3, 4}): struct{}{},
+			fmt.Sprint([]int{3, 4}): struct{}{},
+			fmt.Sprint([]int{4, 3}): struct{}{},
+			fmt.Sprint([]int{2, 4}): struct{}{},
+			fmt.Sprint([]int{4, 2}): struct{}{},
+			fmt.Sprint([]int{1, 4}): struct{}{},
+			fmt.Sprint([]int{4, 1}): struct{}{},
+			fmt.Sprint([]int{0, 4}): struct{}{},
+			fmt.Sprint([]int{4, 0}): struct{}{},
+			fmt.Sprint([]int{2, 3}): struct{}{},
+			fmt.Sprint([]int{3, 2}): struct{}{},
+			fmt.Sprint([]int{1, 3}): struct{}{},
+			fmt.Sprint([]int{3, 1}): struct{}{},
+			fmt.Sprint([]int{0, 3}): struct{}{},
+			// fmt.Sprint([]int{3,0}): struct{}{},
+			fmt.Sprint([]int{1, 2}): struct{}{},
+			fmt.Sprint([]int{2, 1}): struct{}{},
+			fmt.Sprint([]int{0, 2}): struct{}{},
+			fmt.Sprint([]int{2, 0}): struct{}{},
+			fmt.Sprint([]int{0, 1}): struct{}{},
+			fmt.Sprint([]int{1, 0}): struct{}{},
 		},
-		[]int{1, 2, 4},
+		[]int{3, 0},
 	}}
 	for _, tt := range cases {
 		s := &IterativeSearch{common: newCommon(&fakeRanker{tt.n})}
@@ -72,10 +82,9 @@ func TestSampleOrder(t *testing.T) {
 			t.Errorf("wrong order size, want (%v), got (%v)", tt.n, got)
 		}
 		if len(tt.prev) > 0 {
-			ini := got[:tt.k+1]
-			sort.Ints(ini)
+			ini := got[tt.k+1:]
 			if !reflect.DeepEqual(tt.only, ini) {
-				t.Errorf("didn't sample the only possible (k+1)-clique (%v), got (%v)", tt.only, ini)
+				t.Errorf("didn't sample the only possible order (%v), got (%v)", tt.only, ini)
 			}
 		}
 	}
