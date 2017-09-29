@@ -2,7 +2,7 @@ package scr
 
 import "sort"
 
-// Record defines a pair (score, data), where score can be used as a key to sort a slice
+// Record defines a pair (score, data) allowing a slice of records to be sorted by score
 type Record struct {
 	score float64
 	data  interface{}
@@ -17,7 +17,7 @@ func SortRecords(rs []*Record, descending bool) {
 	sort.Slice(rs, f)
 }
 
-// NewRecord returns record data
+// NewRecord returns pointer to a new record data
 func NewRecord(score float64, data interface{}) *Record {
 	return &Record{score, data}
 }
@@ -38,7 +38,8 @@ type RecordHeap struct {
 	less func(i, j int) bool
 }
 
-// NewRecordHeap creates a new record (min or max) heap
+// NewRecordHeap creates a new record heap
+// the less function defines if it is a min or max heap
 func NewRecordHeap(recs *[]*Record, less func(i, j int) bool) *RecordHeap {
 	return &RecordHeap{recs, less}
 }
@@ -50,7 +51,7 @@ func (rh RecordHeap) Less(i, j int) bool { return rh.less(i, j) }
 // Push appends a record to record heap
 func (rh *RecordHeap) Push(x interface{}) { *rh.recs = append(*rh.recs, x.(*Record)) }
 
-// Pop removes the highest scoring record from record heap
+// Pop removes the top record from record heap
 func (rh *RecordHeap) Pop() interface{} {
 	n := len(*rh.recs) - 1
 	rec := (*rh.recs)[n]

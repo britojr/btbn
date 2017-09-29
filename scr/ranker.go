@@ -6,7 +6,7 @@ import (
 	"github.com/britojr/btbn/varset"
 )
 
-// Ranker defines a list of best scores for a given variable
+// Ranker defines methods to find best score for a given variable
 type Ranker interface {
 	BestIn(v int, restric varset.Varset) (parents varset.Varset, localScore float64)
 	BestInLim(v int, restric varset.Varset, maxPa int) (parents varset.Varset, localScore float64)
@@ -14,7 +14,7 @@ type Ranker interface {
 	Size() int
 }
 
-// CreateRanker creates a ranker for the variables given by cache
+// CreateRanker creates a ranker for variables given in cache
 func CreateRanker(cache *Cache, maxPa int) Ranker {
 	r := new(rankList)
 	for i := 0; i < cache.Nvar(); i++ {

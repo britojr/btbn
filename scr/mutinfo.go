@@ -59,9 +59,10 @@ func ReadMutInfo(fname string) *MutInfo {
 	return m
 }
 
-// ComputeFromDataset reads a dataset and computes mutual information
+// ComputeFromDataset reads a csv dataset and computes mutual information
 func ComputeFromDataset(fname string) *MutInfo {
 	// TODO: split in 3 steps: counting, entropy and information
+	// TODO: change counting to support non-binary values
 	f := ioutl.OpenFile(fname)
 	defer f.Close()
 	r := csv.NewReader(bufio.NewReader(f))

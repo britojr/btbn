@@ -1,3 +1,4 @@
+// Package scr provides methods to handle score information
 package scr
 
 import (
