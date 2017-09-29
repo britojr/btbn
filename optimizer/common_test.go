@@ -8,15 +8,34 @@ import (
 	"testing"
 
 	"github.com/britojr/btbn/scr"
+	"github.com/britojr/btbn/varset"
 	"github.com/britojr/utl/errchk"
 )
 
-func helperGetTempFile(content string, fprefix string) string {
-	f, err := ioutil.TempFile("", fprefix)
-	errchk.Check(err, "")
-	defer f.Close()
-	fmt.Fprintf(f, "%s", content)
-	return f.Name()
+type fakeRanker struct {
+	n int
+}
+
+func (r *fakeRanker) BestIn(v int, restric varset.Varset) (varset.Varset, float64) {
+	ps := varset.New(0).SetInts(restric.DumpAsInts())
+	return ps, r.ScoreOf(v, ps)
+}
+func (r *fakeRanker) BestInLim(v int, restric varset.Varset, maxPa int) (varset.Varset, float64) {
+	ps := varset.New(0).SetInts(restric.DumpAsInts()[:maxPa])
+	return ps, r.ScoreOf(v, ps)
+}
+
+func (r *fakeRanker) ScoreOf(v int, parents varset.Varset) float64 {
+	c := 0
+	for _, u := range parents.DumpAsInts() {
+		if u > v {
+			c++
+		}
+	}
+	return float64(c)
+}
+func (r *fakeRanker) Size() int {
+	return r.n
 }
 
 func TestCreate(t *testing.T) {
@@ -68,4 +87,12 @@ func TestCommonSearch(t *testing.T) {
 		}
 	}
 	// TODO: add functions to check cyclicity, connectivity and treewidth
+}
+
+func helperGetTempFile(content string, fprefix string) string {
+	f, err := ioutil.TempFile("", fprefix)
+	errchk.Check(err, "")
+	defer f.Close()
+	fmt.Fprintf(f, "%s", content)
+	return f.Name()
 }

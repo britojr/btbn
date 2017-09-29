@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/britojr/btbn/bnstruct"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
 )
@@ -180,8 +181,8 @@ func TestAstarSearch(t *testing.T) {
 	}
 }
 
-func helperGetBN(psets map[int]varset.Varset, ranker scr.Ranker) *BNStructure {
-	bn := NewBNStructure(ranker.Size())
+func helperGetBN(psets map[int]varset.Varset, ranker scr.Ranker) *bnstruct.BNStruct {
+	bn := bnstruct.New(ranker.Size())
 	emp := varset.New(ranker.Size())
 	for i := 0; i < bn.Size(); i++ {
 		if pset, ok := psets[i]; ok {

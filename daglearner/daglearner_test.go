@@ -1,9 +1,10 @@
-package optimizer
+package daglearner
 
 import (
 	"reflect"
 	"testing"
 
+	"github.com/britojr/btbn/bnstruct"
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
@@ -22,9 +23,6 @@ func (r *fakeRanker) BestInLim(v int, restric varset.Varset, maxPa int) (varset.
 	return ps, r.ScoreOf(v, ps)
 }
 
-// func (r *fakeRanker) ScoreOf(v int, parents varset.Varset) float64 {
-// 	return float64(parents.Count())
-// }
 func (r *fakeRanker) ScoreOf(v int, parents varset.Varset) float64 {
 	c := 0
 	for _, u := range parents.DumpAsInts() {
@@ -38,24 +36,6 @@ func (r *fakeRanker) Size() int {
 	return r.n
 }
 
-func helperTreeVarsets(tk *ktree.Ktree, n int) (vl []varset.Varset) {
-	queue := []*ktree.Ktree{tk}
-	for len(queue) > 0 {
-		r := queue[0]
-		queue = queue[1:]
-		vl = append(vl, varset.New(n).SetInts(r.Variables()))
-		queue = append(queue, r.Children()...)
-	}
-	return
-}
-func helperIsSubSetOfSome(pset varset.Varset, clqset []varset.Varset) bool {
-	for _, clq := range clqset {
-		if clq.IsSuperSet(pset) {
-			return true
-		}
-	}
-	return false
-}
 func TestApproxLearning(t *testing.T) {
 	cases := []struct {
 		n, k   int
@@ -66,7 +46,7 @@ func TestApproxLearning(t *testing.T) {
 	}
 	for _, tt := range cases {
 		tk := ktree.UniformSample(tt.n, tt.k)
-		got := DAGapproximatedLearning(tk, tt.ranker)
+		got := Approximated(tk, tt.ranker)
 		clqset := helperTreeVarsets(tk, tt.n)
 		for i := 0; i < got.Size(); i++ {
 			found := helperIsSubSetOfSome(got.Parents(i).Clone().Set(i), clqset)
@@ -79,14 +59,6 @@ func TestApproxLearning(t *testing.T) {
 	}
 }
 
-func helperIsEqualToSome(pset varset.Varset, clqset []varset.Varset) bool {
-	for _, clq := range clqset {
-		if clq.Equal(pset) {
-			return true
-		}
-	}
-	return false
-}
 func TestSamplePartialOrder(t *testing.T) {
 	cases := []struct {
 		n, k int
@@ -130,7 +102,7 @@ func TestSetParentsFromOrder(t *testing.T) {
 			7: []int{1, 2, 5},
 		}}}
 	for _, tt := range cases {
-		bn := NewBNStructure(tt.ranker.Size())
+		bn := bnstruct.New(tt.ranker.Size())
 		setParentsFromOrder(tt.order, tt.ranker, bn)
 		for v, ps := range tt.parents {
 			if bn.Parents(v) != nil {
@@ -142,4 +114,31 @@ func TestSetParentsFromOrder(t *testing.T) {
 			}
 		}
 	}
+}
+
+func helperTreeVarsets(tk *ktree.Ktree, n int) (vl []varset.Varset) {
+	queue := []*ktree.Ktree{tk}
+	for len(queue) > 0 {
+		r := queue[0]
+		queue = queue[1:]
+		vl = append(vl, varset.New(n).SetInts(r.Variables()))
+		queue = append(queue, r.Children()...)
+	}
+	return
+}
+func helperIsSubSetOfSome(pset varset.Varset, clqset []varset.Varset) bool {
+	for _, clq := range clqset {
+		if clq.IsSuperSet(pset) {
+			return true
+		}
+	}
+	return false
+}
+func helperIsEqualToSome(pset varset.Varset, clqset []varset.Varset) bool {
+	for _, clq := range clqset {
+		if clq.Equal(pset) {
+			return true
+		}
+	}
+	return false
 }

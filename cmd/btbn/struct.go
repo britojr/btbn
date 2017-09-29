@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/britojr/btbn/bnstruct"
 	"github.com/britojr/btbn/optimizer"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
@@ -74,7 +75,7 @@ func structureLearning() {
 	}
 }
 
-func writeSolution(fname string, bn *optimizer.BNStructure, alg optimizer.Optimizer, sc *scr.Cache) {
+func writeSolution(fname string, bn *bnstruct.BNStruct, alg optimizer.Optimizer, sc *scr.Cache) {
 	log.Printf("Printing solution: '%v'\n", fname)
 	f := ioutl.CreateFile(fname)
 	defer f.Close()

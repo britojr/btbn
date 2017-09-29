@@ -1,9 +1,10 @@
-package optimizer
+package daglearner
 
 import (
 	"math/rand"
 	"time"
 
+	"github.com/britojr/btbn/bnstruct"
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
@@ -13,10 +14,10 @@ var seed = func() int64 {
 	return time.Now().UnixNano()
 }
 
-// DAGapproximatedLearning learns a dag approximatedly from a  ktree
-func DAGapproximatedLearning(tk *ktree.Ktree, ranker scr.Ranker) (bn *BNStructure) {
+// Approximated learns a dag approximatedly from a ktree
+func Approximated(tk *ktree.Ktree, ranker scr.Ranker) (bn *bnstruct.BNStruct) {
 	// Initialize the local scores for empty list of parents
-	bn = NewBNStructure(ranker.Size())
+	bn = bnstruct.New(ranker.Size())
 	parents := varset.New(ranker.Size())
 	for x := 0; x < ranker.Size(); x++ {
 		bn.SetParents(x, parents, ranker.ScoreOf(x, parents))
@@ -32,7 +33,7 @@ func DAGapproximatedLearning(tk *ktree.Ktree, ranker scr.Ranker) (bn *BNStructur
 	return bn
 }
 
-func setParentsFromOrder(order partialOrder, ranker scr.Ranker, bn *BNStructure) {
+func setParentsFromOrder(order partialOrder, ranker scr.Ranker, bn *bnstruct.BNStruct) {
 	restric := varset.New(ranker.Size())
 	for _, v := range order.vars[:order.ini] {
 		restric.Set(v)
@@ -99,4 +100,17 @@ func shuffle(xs []int, r *rand.Rand) []int {
 		shuf[i] = xs[perm[i]]
 	}
 	return shuf
+}
+
+// Exact learns an optimal dag from a ktree
+// TODO: need to replace this for an actual call to an exact method
+func Exact(tk *ktree.Ktree, ranker scr.Ranker) (bn *bnstruct.BNStruct) {
+	bn = Approximated(tk, ranker)
+	for i := 0; i < 50; i++ {
+		currBn := Approximated(tk, ranker)
+		if currBn.Better(bn) {
+			bn = currBn
+		}
+	}
+	return
 }

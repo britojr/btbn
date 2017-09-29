@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"sort"
 
+	"github.com/britojr/btbn/bnstruct"
+	"github.com/britojr/btbn/daglearner"
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
@@ -37,11 +39,11 @@ func NewSelectSampleSearch(scoreRanker scr.Ranker) Optimizer {
 }
 
 // Search searchs for a network structure
-func (s *SelectSampleSearch) Search() *BNStructure {
+func (s *SelectSampleSearch) Search() *bnstruct.BNStruct {
 	if len(s.tkList) == 0 {
 		s.selectKTrees()
 	}
-	bn := DAGapproximatedLearning(s.tkList[0].Data().(*ktree.Ktree), s.scoreRanker)
+	bn := daglearner.Approximated(s.tkList[0].Data().(*ktree.Ktree), s.scoreRanker)
 	s.tkList = s.tkList[1:]
 	return bn
 }

@@ -1,4 +1,4 @@
-package optimizer
+package bnstruct
 
 import (
 	"math"
@@ -8,12 +8,12 @@ import (
 	"github.com/britojr/btbn/varset"
 )
 
-func TestNewBNStructure(t *testing.T) {
+func TestNew(t *testing.T) {
 	cases := []struct {
 		size int
 	}{{1}, {2}, {7}, {55}}
 	for _, tt := range cases {
-		got := NewBNStructure(tt.size)
+		got := New(tt.size)
 		if tt.size != got.Size() {
 			t.Errorf("wrong size (%v)!=(%v)", tt.size, got.Size())
 		}
@@ -41,26 +41,26 @@ func TestScore(t *testing.T) {
 		}, math.Inf(-1),
 	}}
 	for _, tt := range cases {
-		bn := NewBNStructure(tt.size)
+		bn := New(tt.size)
 		for v, r := range tt.vars {
 			bn.SetParents(v, r.Data().(varset.Varset), r.Score())
 		}
 		for v := 0; v < tt.size; v++ {
-			scr := bn.LocalScore(v)
+			lscor := bn.LocalScore(v)
 			r, ok := tt.vars[v]
 			if ok {
-				if r.Score() != scr {
-					t.Errorf("wrong local score of (%v): (%v)!=(%v)", v, r.Score(), scr)
+				if r.Score() != lscor {
+					t.Errorf("wrong local score of (%v): (%v)!=(%v)", v, r.Score(), lscor)
 				}
 			} else {
-				if tt.totScr != scr {
-					t.Errorf("wrong local score of (%v): (%v)!=(%v)", v, tt.totScr, scr)
+				if tt.totScr != lscor {
+					t.Errorf("wrong local score of (%v): (%v)!=(%v)", v, tt.totScr, lscor)
 				}
 			}
 		}
-		scr := bn.Score()
-		if tt.totScr != scr {
-			t.Errorf("wrong total score (%v)!=(%v)", tt.totScr, scr)
+		score := bn.Score()
+		if tt.totScr != score {
+			t.Errorf("wrong total score (%v)!=(%v)", tt.totScr, score)
 		}
 	}
 }
@@ -85,7 +85,7 @@ func TestParents(t *testing.T) {
 		},
 	}}
 	for _, tt := range cases {
-		bn := NewBNStructure(tt.size)
+		bn := New(tt.size)
 		for v, r := range tt.vars {
 			bn.SetParents(v, r.Data().(varset.Varset), r.Score())
 		}
@@ -125,6 +125,26 @@ func TestBetter(t *testing.T) {
 			1: scr.NewRecord(-1, varset.New(0)),
 		}, map[int]*scr.Record{
 			1: scr.NewRecord(-15, varset.New(0)),
+		}, true,
+	}, {
+		2, map[int]*scr.Record{
+			1: scr.NewRecord(-15, varset.New(0)),
+		}, map[int]*scr.Record{
+			1: scr.NewRecord(-1, varset.New(0)),
+		}, false,
+	}, {
+		3, map[int]*scr.Record{
+			0: scr.NewRecord(-100, varset.New(0)),
+			1: scr.NewRecord(-200, varset.New(0)),
+		}, map[int]*scr.Record{
+			1: scr.NewRecord(-15, varset.New(0)),
+		}, true,
+	}, {
+		3, map[int]*scr.Record{
+			1: scr.NewRecord(-15, varset.New(0)),
+		}, map[int]*scr.Record{
+			0: scr.NewRecord(-100, varset.New(0)),
+			1: scr.NewRecord(-200, varset.New(0)),
 		}, false,
 	}, {
 		2, map[int]*scr.Record{
@@ -158,7 +178,7 @@ func TestBetter(t *testing.T) {
 		}, false,
 	}}
 	for _, tt := range cases {
-		bn1, bn2 := NewBNStructure(tt.size), NewBNStructure(tt.size)
+		bn1, bn2 := New(tt.size), New(tt.size)
 		for v, r := range tt.vars1 {
 			bn1.SetParents(v, r.Data().(varset.Varset), r.Score())
 		}
@@ -170,8 +190,8 @@ func TestBetter(t *testing.T) {
 		}
 	}
 	for _, tt := range cases {
-		bn1 := NewBNStructure(tt.size)
-		var bn2 *BNStructure
+		bn1 := New(tt.size)
+		var bn2 *BNStruct
 		for v, r := range tt.vars1 {
 			bn1.SetParents(v, r.Data().(varset.Varset), r.Score())
 		}

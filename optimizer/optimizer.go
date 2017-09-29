@@ -5,32 +5,36 @@ import (
 	"log"
 	"time"
 
+	"github.com/britojr/btbn/bnstruct"
 	"github.com/britojr/btbn/scr"
 )
 
-// Define nem constants
+// search algorithms names
 const (
-	// search algorithms names
 	AlgSampleSearch    = "sample"    // n14
 	AlgSelectedSample  = "selected"  // n15
 	AlgGuidedSearch    = "guided"    // n16
 	AlgIterativeSearch = "iterative" // s16
+)
 
-	// file parameters fields
+// file parameters fields
+const (
 	ParmTreewidth       = "treewidth"
 	ParmMaxParents      = "max_parents"
 	ParmNumTrees        = "num_trees"
 	ParmMutualInfo      = "mutual_info"
 	ParmSearchVariation = "search_variation"
+)
 
-	// file parameters fields options
+// file parameters fields options
+const (
 	OpGreedy = "greedy"
 	OpAstar  = "astar"
 )
 
 // Optimizer defines a structure optimizer algorithm
 type Optimizer interface {
-	Search() *BNStructure
+	Search() *bnstruct.BNStruct
 	SetDefaultParameters()
 	SetFileParameters(parms map[string]string)
 	ValidateParameters()
@@ -55,8 +59,8 @@ func Create(optimizerAlg string, scoreRanker scr.Ranker, parms map[string]string
 }
 
 // Search applies the optimizer strategy to find the best solution
-func Search(algorithm Optimizer, numSolutions, timeAvailable int) *BNStructure {
-	var best, current *BNStructure
+func Search(algorithm Optimizer, numSolutions, timeAvailable int) *bnstruct.BNStruct {
+	var best, current *bnstruct.BNStruct
 	if numSolutions <= 0 && timeAvailable <= 0 {
 		numSolutions = 1
 	}
@@ -65,7 +69,7 @@ func Search(algorithm Optimizer, numSolutions, timeAvailable int) *BNStructure {
 		i := 0
 		remaining := time.Duration(timeAvailable) * time.Second
 		for {
-			ch := make(chan *BNStructure, 1)
+			ch := make(chan *bnstruct.BNStruct, 1)
 			start := time.Now()
 			go func() {
 				ch <- algorithm.Search()

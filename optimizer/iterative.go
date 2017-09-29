@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"time"
 
+	"github.com/britojr/btbn/bnstruct"
+	"github.com/britojr/btbn/daglearner"
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
@@ -22,6 +25,10 @@ type IterativeSearch struct {
 	hval  []float64
 }
 
+var seed = func() int64 {
+	return time.Now().UnixNano()
+}
+
 // NewIterativeSearch creates an instance of the iterative stragegy
 func NewIterativeSearch(scoreRanker scr.Ranker) Optimizer {
 	s := &IterativeSearch{common: newCommon(scoreRanker)}
@@ -30,7 +37,7 @@ func NewIterativeSearch(scoreRanker scr.Ranker) Optimizer {
 }
 
 // Search searchs for a network structure
-func (s *IterativeSearch) Search() *BNStructure {
+func (s *IterativeSearch) Search() *bnstruct.BNStruct {
 	ord := s.sampleOrder()
 	bn := s.getInitialDAG(ord[:s.tw+1])
 	switch s.searchVariation {
@@ -86,19 +93,11 @@ func (s *IterativeSearch) sampleOrder() []int {
 	}
 }
 
-func (s *IterativeSearch) getInitialDAG(vars []int) *BNStructure {
-	// TODO: replace this for an exact method
-	bestBn := DAGapproximatedLearning(ktree.New(vars, -1, -1), s.scoreRanker)
-	for i := 0; i < 50; i++ {
-		currBn := DAGapproximatedLearning(ktree.New(vars, -1, -1), s.scoreRanker)
-		if currBn.Better(bestBn) {
-			bestBn = currBn
-		}
-	}
-	return bestBn
+func (s *IterativeSearch) getInitialDAG(vars []int) *bnstruct.BNStruct {
+	return daglearner.Exact(ktree.New(vars, -1, -1), s.scoreRanker)
 }
 
-func (s *IterativeSearch) greedySearch(bn *BNStructure, ord []int) *BNStructure {
+func (s *IterativeSearch) greedySearch(bn *bnstruct.BNStruct, ord []int) *bnstruct.BNStruct {
 	// clqs := []varset.Varset{varset.New(s.nv)}
 	clqs := make([]varset.Varset, 0, s.nv-s.tw)
 	clqs = append(clqs, varset.New(s.nv))
@@ -138,7 +137,7 @@ type searchNode struct {
 	score  float64 // accumulated solution score
 }
 
-func (s *IterativeSearch) astarSearch(bn *BNStructure, ord []int) *BNStructure {
+func (s *IterativeSearch) astarSearch(bn *bnstruct.BNStruct, ord []int) *bnstruct.BNStruct {
 	s.order = ord
 	s.computeHeuristic()
 	state := s.getStartState(bn)
@@ -175,7 +174,7 @@ func (s *IterativeSearch) astarSearch(bn *BNStructure, ord []int) *BNStructure {
 	return nil
 }
 
-func (s *IterativeSearch) makeSolution(bn *BNStructure, nd *searchNode) *BNStructure {
+func (s *IterativeSearch) makeSolution(bn *bnstruct.BNStruct, nd *searchNode) *bnstruct.BNStruct {
 	for nd.parent != nil {
 		bn.SetParents(nd.state.v, nd.state.pset, nd.state.pscor)
 		nd = nd.parent
@@ -199,7 +198,7 @@ func (s *IterativeSearch) computeHeuristic() {
 	}
 }
 
-func (s *IterativeSearch) getStartState(bn *BNStructure) *problemState {
+func (s *IterativeSearch) getStartState(bn *bnstruct.BNStruct) *problemState {
 	st := new(problemState)
 	st.v = -1
 	st.pset = nil
