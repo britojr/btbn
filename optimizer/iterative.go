@@ -36,7 +36,7 @@ func NewIterativeSearch(scoreRanker scr.Ranker) Optimizer {
 	return s
 }
 
-// Search searchs for a network structure
+// Search searches for a network structure
 func (s *IterativeSearch) Search() *bnstruct.BNStruct {
 	ord := s.sampleOrder()
 	bn := s.getInitialDAG(ord[:s.tw+1])
@@ -80,7 +80,7 @@ func (s *IterativeSearch) PrintParameters() {
 }
 
 // sampleOrder samples a permutation of variables
-// rejecting repeated orders (k+1 to forward) that already occured on previous samples
+// rejecting repeated orders (k+1 to forward) that already occurred on previous samples
 func (s *IterativeSearch) sampleOrder() []int {
 	r := rand.New(rand.NewSource(seed()))
 	for {

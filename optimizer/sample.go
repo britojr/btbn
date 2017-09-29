@@ -17,7 +17,7 @@ func NewSampleSearch(scoreRanker scr.Ranker) Optimizer {
 	return &SampleSearch{common: newCommon(scoreRanker)}
 }
 
-// Search searchs for a network structure
+// Search searches for a network structure
 func (s *SampleSearch) Search() *bnstruct.BNStruct {
 	tk := ktree.UniformSample(s.nv, s.tw)
 	bn := daglearner.Approximated(tk, s.scoreRanker)

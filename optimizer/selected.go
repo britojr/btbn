@@ -38,7 +38,7 @@ func NewSelectSampleSearch(scoreRanker scr.Ranker) Optimizer {
 	return s
 }
 
-// Search searchs for a network structure
+// Search searches for a network structure
 func (s *SelectSampleSearch) Search() *bnstruct.BNStruct {
 	if len(s.tkList) == 0 {
 		s.selectKTrees()
