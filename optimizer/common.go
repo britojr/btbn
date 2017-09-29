@@ -43,3 +43,7 @@ func (s *common) PrintParameters() {
 	log.Printf("number of variables: %v\n", s.nv)
 	log.Printf("%v: %v\n", ParmTreewidth, s.tw)
 }
+
+func (s *common) Treewidth() int {
+	return s.tw
+}

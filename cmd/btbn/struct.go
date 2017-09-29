@@ -70,16 +70,16 @@ func structureLearning() {
 	log.Printf(" -------------------------------------------------- \n")
 
 	if len(bnetFile) > 0 {
-		writeSolution(bnetFile, solution)
+		writeSolution(bnetFile, solution, algorithm, scoreCache)
 	}
 }
 
-func writeSolution(fname string, bn *optimizer.BNStructure) {
-	// bn.Size() bn.Parents(i).DumpString()
+func writeSolution(fname string, bn *optimizer.BNStructure, alg optimizer.Optimizer, sc *scr.Cache) {
 	log.Printf("Printing solution: '%v'\n", fname)
 	f := ioutl.CreateFile(fname)
 	defer f.Close()
 	fmt.Fprintf(f, "META variables = %v\n", bn.Size())
+	fmt.Fprintf(f, "META treewidth = %v\n", alg.Treewidth())
 	fmt.Fprintf(f, "META score = %v\n", bn.Score())
 	for i := 0; i < bn.Size(); i++ {
 		fmt.Fprintf(f, "%v:", i)

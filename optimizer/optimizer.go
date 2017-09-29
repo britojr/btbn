@@ -33,8 +33,9 @@ type Optimizer interface {
 	Search() *BNStructure
 	SetDefaultParameters()
 	SetFileParameters(parms map[string]string)
-	PrintParameters()
 	ValidateParameters()
+	PrintParameters()
+	Treewidth() int
 }
 
 var optimizerCreators = map[string]func(scr.Ranker) Optimizer{
