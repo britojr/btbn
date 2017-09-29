@@ -2,6 +2,7 @@ package scr
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/britojr/btbn/varset"
 )
@@ -66,7 +67,9 @@ func newVarRanker(v int, cache *Cache, maxPa int) *varRanker {
 			r.scoreList = append(r.scoreList, NewRecord(score, pset))
 		}
 	}
-	SortRecords(r.scoreList, true)
+	sort.Slice(r.scoreList, func(i, j int) bool {
+		return r.scoreList[i].Score() > r.scoreList[j].Score()
+	})
 	return r
 }
 

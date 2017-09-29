@@ -4,6 +4,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"sort"
 
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
@@ -95,7 +96,9 @@ func (s *SelectSampleSearch) selectKTrees() {
 		}
 		s.tkList = append(s.tkList, scr.NewRecord(iscr, tk))
 	}
-	scr.SortRecords(s.tkList, true)
+	sort.Slice(s.tkList, func(i, j int) bool {
+		return s.tkList[i].Score() > s.tkList[j].Score()
+	})
 }
 
 func (s *SelectSampleSearch) acceptTree(iscr float64, r *rand.Rand) bool {

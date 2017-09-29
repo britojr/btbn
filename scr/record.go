@@ -1,20 +1,9 @@
 package scr
 
-import "sort"
-
 // Record defines a pair (score, data) allowing a slice of records to be sorted by score
 type Record struct {
 	score float64
 	data  interface{}
-}
-
-// SortRecords sorts a score record by descending score
-func SortRecords(rs []*Record, descending bool) {
-	f := func(i, j int) bool { return rs[i].score < rs[j].score }
-	if descending {
-		f = func(i, j int) bool { return rs[i].score > rs[j].score }
-	}
-	sort.Slice(rs, f)
 }
 
 // NewRecord returns pointer to a new record data
