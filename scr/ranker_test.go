@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/britojr/btbn/varset"
+	"github.com/britojr/utl/ioutl"
 )
 
 func TestScoreOf(t *testing.T) {
@@ -57,7 +58,7 @@ VAR C
 	}
 
 	for _, tt := range cases {
-		fname := helperGetTempFile(tt.content, "rk_test")
+		fname := ioutl.TempFile("rk_test", tt.content)
 		defer os.Remove(fname)
 		sr := CreateRanker(Read(fname), tt.maxPa)
 		parents := varset.New(sr.Size())
@@ -110,7 +111,7 @@ VAR C
 	}
 
 	for _, tt := range cases {
-		fname := helperGetTempFile(tt.content, "rk_test")
+		fname := ioutl.TempFile("rk_test", tt.content)
 		defer os.Remove(fname)
 		sr := CreateRanker(Read(fname), tt.maxPa)
 		restric := varset.New(sr.Size())

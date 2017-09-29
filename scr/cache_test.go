@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/britojr/btbn/varset"
+	"github.com/britojr/utl/ioutl"
 )
 
 func TestScores(t *testing.T) {
@@ -60,7 +61,7 @@ VAR C
 		}}}
 
 	for _, tt := range cases {
-		fname := helperGetTempFile(tt.content, "rk_test")
+		fname := ioutl.TempFile("rk_test", tt.content)
 		defer os.Remove(fname)
 		sc := Read(fname)
 		scoreMap := sc.Scores(tt.x)

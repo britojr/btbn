@@ -1,15 +1,13 @@
 package optimizer
 
 import (
-	"fmt"
-	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
-	"github.com/britojr/utl/errchk"
+	"github.com/britojr/utl/ioutl"
 )
 
 type fakeRanker struct {
@@ -57,7 +55,7 @@ func TestCommonSearch(t *testing.T) {
 0.11 0.11 0.67
 0.11 0.11 0.67 0.70
 `
-	mifile := helperGetTempFile(mi, "selec_test")
+	mifile := ioutl.TempFile("selec_test", mi)
 	defer os.Remove(mifile)
 	cases := []struct {
 		alg    string
@@ -87,12 +85,4 @@ func TestCommonSearch(t *testing.T) {
 		}
 	}
 	// TODO: add functions to check cyclicity, connectivity and treewidth
-}
-
-func helperGetTempFile(content string, fprefix string) string {
-	f, err := ioutil.TempFile("", fprefix)
-	errchk.Check(err, "")
-	defer f.Close()
-	fmt.Fprintf(f, "%s", content)
-	return f.Name()
 }

@@ -1,3 +1,5 @@
+// Package optimizer provides different implementations of algorithms to learn
+// Bayesian Networks with bounded tree-width structures
 package optimizer
 
 import (

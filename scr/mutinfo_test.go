@@ -1,21 +1,11 @@
 package scr
 
 import (
-	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
-	"github.com/britojr/utl/errchk"
+	"github.com/britojr/utl/ioutl"
 )
-
-func helperGetTempFile(content string, fprefix string) string {
-	f, err := ioutil.TempFile("", fprefix)
-	errchk.Check(err, "")
-	defer f.Close()
-	fmt.Fprintf(f, "%s", content)
-	return f.Name()
-}
 
 func TestComputeFromDataset(t *testing.T) {
 	cases := []struct {
@@ -36,7 +26,7 @@ func TestComputeFromDataset(t *testing.T) {
 	}}
 
 	for _, tt := range cases {
-		fname := helperGetTempFile(tt.content, "mi_test")
+		fname := ioutl.TempFile("mi_test", tt.content)
 		defer os.Remove(fname)
 		mi := ComputeFromDataset(fname)
 		if tt.nvar != mi.NVar() {
@@ -72,8 +62,8 @@ func TestWriteRead(t *testing.T) {
 	}}
 
 	for _, tt := range cases {
-		dsfile := helperGetTempFile(tt.content, "mi_test")
-		mifile := helperGetTempFile(tt.content, "mi_test")
+		dsfile := ioutl.TempFile("mi_test", tt.content)
+		mifile := ioutl.TempFile("mi_test", tt.content)
 		defer os.Remove(dsfile)
 		defer os.Remove(mifile)
 		mi1 := ComputeFromDataset(dsfile)

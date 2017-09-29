@@ -9,6 +9,7 @@ import (
 	"github.com/britojr/btbn/bnstruct"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
+	"github.com/britojr/utl/ioutl"
 )
 
 func TestGetInitialDAG(t *testing.T) {
@@ -92,7 +93,7 @@ func TestSampleOrder(t *testing.T) {
 }
 
 func TestGreedySearch(t *testing.T) {
-	fname := helperGetTempFile(fixedScores, "iter_test")
+	fname := ioutl.TempFile("iter_test", fixedScores)
 	defer os.Remove(fname)
 	rk := scr.CreateRanker(scr.Read(fname), 10)
 	cases := []struct {
@@ -137,7 +138,7 @@ func TestGreedySearch(t *testing.T) {
 }
 
 func TestAstarSearch(t *testing.T) {
-	fname := helperGetTempFile(fixedScores, "iter_test")
+	fname := ioutl.TempFile("iter_test", fixedScores)
 	defer os.Remove(fname)
 	rk := scr.CreateRanker(scr.Read(fname), 10)
 	cases := []struct {
