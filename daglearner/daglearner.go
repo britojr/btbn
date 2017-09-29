@@ -57,7 +57,7 @@ func samplePartialOrder(tk *ktree.Ktree) []partialOrder {
 	r := rand.New(rand.NewSource(seed()))
 	// start partial order with a shuffle of the root node
 	po := []partialOrder{
-		partialOrder{shuffle(tk.Variables(), r), 0},
+		{shuffle(tk.Variables(), r), 0},
 	}
 	// for each children node, theres is one variable replaced relative to its parent
 	// sample a position to insert the respective variable, respecting the prevoious orders

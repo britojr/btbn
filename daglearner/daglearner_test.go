@@ -88,18 +88,18 @@ func TestSetParentsFromOrder(t *testing.T) {
 		&fakeRanker{9},
 		partialOrder{[]int{1, 2, 3, 4}, 0},
 		map[int][]int{
-			1: []int{},
-			2: []int{1},
-			3: []int{1, 2},
-			4: []int{1, 2, 3},
+			1: {},
+			2: {1},
+			3: {1, 2},
+			4: {1, 2, 3},
 		}}, {
 		&fakeRanker{9},
 		partialOrder{[]int{5, 2, 1, 7}, 2},
 		map[int][]int{
-			5: []int{},
-			2: []int{},
-			1: []int{2, 5},
-			7: []int{1, 2, 5},
+			5: {},
+			2: {},
+			1: {2, 5},
+			7: {1, 2, 5},
 		}}}
 	for _, tt := range cases {
 		bn := bnstruct.New(tt.ranker.Size())

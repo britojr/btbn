@@ -7,8 +7,8 @@ import (
 )
 
 func TestRecordHeap(t *testing.T) {
-	rs1 := []*Record{&Record{5, nil}, &Record{2, nil}, &Record{7, nil}}
-	rs2 := []*Record{&Record{5, nil}, &Record{2, nil}, &Record{7, nil}}
+	rs1 := []*Record{{5, nil}, {2, nil}, {7, nil}}
+	rs2 := []*Record{{5, nil}, {2, nil}, {7, nil}}
 	cases := []struct {
 		init    *[]*Record
 		less    func(i, j int) bool
