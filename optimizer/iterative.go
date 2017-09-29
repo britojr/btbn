@@ -144,31 +144,14 @@ func (s *IterativeSearch) astarSearch(bn *bnstruct.BNStruct, ord []int) *bnstruc
 	rs := []*scr.Record{scr.NewRecord(-(state.pscor + s.heuristic(state)), &searchNode{state, nil, state.pscor})}
 	pq := scr.NewRecordHeap(&rs, func(i, j int) bool { return rs[i].Score() < rs[j].Score() })
 	heap.Init(pq)
-	cpush, cpop := 0, 0
-	fmt.Printf("in: %v\n", rs[0].Score())
 	for pq.Len() > 0 {
-		// uncomment:
-		// nd := heap.Pop(pq).(*scr.Record).Data().(*searchNode)
-		// remove:
-		aux := heap.Pop(pq).(*scr.Record)
-		// fmt.Printf("pop: %v | %v\n", aux.Score(), aux.Data().(*searchNode).state.clqs)
-		cpop++
-		nd := aux.Data().(*searchNode)
-		// remove up
+		nd := heap.Pop(pq).(*scr.Record).Data().(*searchNode)
 		if s.isGoalState(nd.state) {
-			fmt.Printf(">>> tot push:%v, pop:%v\n", cpush, cpop)
 			return s.makeSolution(bn, nd)
 		}
 		for _, succ := range s.stateSuccessors(nd.state) {
 			ch := &searchNode{succ, nd, nd.score + succ.pscor}
-			// uncomment:
-			// heap.Push(pq, scr.NewRecord(-(ch.score+s.heuristic(succ)), ch))
-			// remove:
-			aux := scr.NewRecord(-(ch.score + s.heuristic(succ)), ch)
-			// fmt.Printf("  push: %v | %v\n", aux.Score(), aux.Data().(*searchNode).state.clqs)
-			heap.Push(pq, aux)
-			cpush++
-			// remove up
+			heap.Push(pq, scr.NewRecord(-(ch.score+s.heuristic(succ)), ch))
 		}
 	}
 	return nil
