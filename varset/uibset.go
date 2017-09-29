@@ -5,6 +5,7 @@ import (
 	"github.com/willf/bitset"
 )
 
+// uibset defines an implementation of varset type using unsigned ints
 type uibset struct {
 	*bitset.BitSet
 }
@@ -20,19 +21,20 @@ func (b *uibset) DumpHashString() string {
 }
 
 func (b *uibset) DumpAsInts() []int {
-	// return b.DumpAsInts()
 	s := make([]int, 0, b.Count())
 	for i, ok := b.NextSet(0); ok; i, ok = b.NextSet(i + 1) {
 		s = append(s, int(i))
 	}
 	return s
 }
+
 func (b *uibset) SetInts(is []int) Varset {
 	for _, i := range is {
 		b.BitSet.Set(uint(i))
 	}
 	return b
 }
+
 func (b *uibset) ClearInts(is []int) Varset {
 	for _, i := range is {
 		b.BitSet.Clear(uint(i))

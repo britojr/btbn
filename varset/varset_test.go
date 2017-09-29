@@ -19,6 +19,7 @@ func TestString(t *testing.T) {
 		{3, []int{0, 2}},
 		{527, []int{0, 2, 100, 312, 512}},
 	}
+	// checks if the string methods allow for correct code/decode of varset type
 	for _, tt := range cases {
 		b1 := New(tt.size)
 		for _, v := range tt.vars {

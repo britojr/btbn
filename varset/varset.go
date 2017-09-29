@@ -17,18 +17,24 @@ type Varset interface {
 	Clone() Varset
 }
 
-var varsetTypeDefault = "uibset"
+const (
+	varsetTypeDefault = "uibset" // default varset implementation
+	// varset type implementations
+	typeUibset = "uibset" // implementation using unsigned ints
+	typeBibset = "bibset" // implementation using big ints
+)
 
-// var varsetTypeDefault = "bigbset"
+var varsetCreators = map[string]func(int) Varset{
+	typeUibset: newUibset,
+	// typeBibset:  newBibset,
+}
 
 // Create creates a varset of defined type
 func Create(varsetType string, size int) Varset {
-	switch varsetType {
-	case "uibset":
-		return newUibset(size)
-	default:
-		panic(fmt.Errorf("invalid option: '%v'", varsetType))
+	if create, ok := varsetCreators[varsetType]; ok {
+		return create(size)
 	}
+	panic(fmt.Errorf("invalid option: '%v'", varsetType))
 }
 
 // New creates new varset
