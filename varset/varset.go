@@ -1,8 +1,9 @@
+// Package varset implements a variable set type
 package varset
 
 import "fmt"
 
-// Varset defines a variable set type
+// Varset defines variable set type
 type Varset interface {
 	DumpHashString() string
 	LoadHashString(s string) Varset
