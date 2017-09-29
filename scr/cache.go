@@ -80,3 +80,8 @@ func (c *Cache) Nvar() int {
 func (c *Cache) Scores(v int) map[string]float64 {
 	return c.caches[v]
 }
+
+// VarName returns the name of a given variable id
+func (c *Cache) VarName(v int) string {
+	return c.varName[v]
+}

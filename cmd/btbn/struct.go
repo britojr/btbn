@@ -81,10 +81,11 @@ func writeSolution(fname string, bn *optimizer.BNStructure, alg optimizer.Optimi
 	fmt.Fprintf(f, "META variables = %v\n", bn.Size())
 	fmt.Fprintf(f, "META treewidth = %v\n", alg.Treewidth())
 	fmt.Fprintf(f, "META score = %v\n", bn.Score())
+	fmt.Fprintln(f)
 	for i := 0; i < bn.Size(); i++ {
-		fmt.Fprintf(f, "%v:", i)
+		fmt.Fprintf(f, "%v:", sc.VarName(i))
 		for _, v := range bn.Parents(i).DumpAsInts() {
-			fmt.Fprintf(f, " %v", v)
+			fmt.Fprintf(f, " %v", sc.VarName(v))
 		}
 		fmt.Fprintf(f, "\n")
 	}
