@@ -9,7 +9,9 @@ import (
 // Define subcommand names
 const (
 	structConst = "struct"
+	structDescr = "learns bounded tree-width structure"
 	mutinfConst = "mutinf"
+	mutinfDescr = "computes variables pair-wise mutual information"
 )
 
 // Define Flag variables
@@ -70,7 +72,7 @@ func initSubcommands() {
 	structComm.IntVar(&numSolutions, "i", 1, "max number of iterations (0->unbounded)")
 
 	// mutinf subcommand Flags
-	mutinfComm.BoolVar(&verbose, "v", false, "prints detailed steps")
+	mutinfComm.BoolVar(&verbose, "v", true, "prints detailed steps")
 	mutinfComm.StringVar(&dataFile, "d", "", "dataset file in csv format")
 	mutinfComm.StringVar(&mutinfFile, "o", "", "file to save mutual information")
 }
@@ -78,11 +80,8 @@ func initSubcommands() {
 func printDefaults() {
 	fmt.Printf("Usage:\n\n")
 	fmt.Printf("\tbtbn <command> [arguments]\n\n")
-	fmt.Printf("The commands are:\n\n")
-	fmt.Printf(
-		"\t%v\n\t%v\n",
-		structConst,
-		mutinfConst,
-	)
+	fmt.Printf("The command are:\n\n")
+	fmt.Printf("\t%v\t- %v\n", structConst, structDescr)
+	fmt.Printf("\t%v\t- %v\n", mutinfConst, mutinfDescr)
 	fmt.Println()
 }
