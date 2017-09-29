@@ -1,3 +1,6 @@
+// Package ktree implements a k-tree structure
+// that is, a clique-tree where each node has length k
+// and differs from its neighbour in exactly one variable
 package ktree
 
 import (
@@ -43,7 +46,7 @@ func (tk *Ktree) VarOut() int {
 	return tk.vOut
 }
 
-// Children returns the children of this node
+// Children returns the children nodes of this node
 func (tk *Ktree) Children() []*Ktree {
 	return tk.children
 }
@@ -81,12 +84,13 @@ func FromCode(C *codec.Code) *Ktree {
 }
 
 func (tk *Ktree) String() string {
-	cl := allCliques(tk)
+	cl := tk.AllCliques()
 	s := fmt.Sprintf("{size: %v cl:{%v}}", len(cl), cl)
 	return s
 }
 
-func allCliques(tk *Ktree) (cl [][]int) {
+// AllCliques returns a list of all cliques that descend from this node
+func (tk *Ktree) AllCliques() (cl [][]int) {
 	queue := []*Ktree{tk}
 	for len(queue) > 0 {
 		r := queue[0]
