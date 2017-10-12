@@ -11,13 +11,13 @@ ___
 
 ## Installation and usage
 
-* Get, install and test:
+### Get, install and test:
 
 		go get -u github.com/britojr/btbn...
 		go install github.com/britojr/btbn...
 		go test github.com/britojr/btbn... -cover
 
-* Usage:
+### Usage:
 
 		btbn --help
 		Usage: btbn <command> [options]
@@ -32,7 +32,7 @@ ___
 			-a			structure learning algorithm {sample|selected|guided|iterative}
 			-b			network output file (ex: example.bnet)
 			-i			max number of iterations (0 means unbounded) (default 1)
-			-p			parameters file (ex: example.parms)
+			-p			parameters file (ex: example-parms.yaml)
 			-s			precomputed parent set scores file (ex: example.pss)
 			-t			available time to search for solution (0 means unbounded)
 			-v=true		prints detailed steps (default true)
@@ -43,11 +43,33 @@ ___
 			-o			mutual information output file (ex: example.mi)
 			-v=true		prints detailed steps (default true)
 
-* Examples:
+### Examples:
 
-		# Learn bounded tree-width bn using iterative greedy search for 2 secs
-		# and save resulting networnk in './examples/example.bnet'
-		btbn struct -i 0 -t 2 -s ./examples/example.pss -p ./examples/example.parms -a iterative -b ./examples/example.bnet
+Learn bounded tree-width bn using iterative greedy search for 2 secs.
+Save resulting networnk in 'example.bnet':
 
-		# Compute mutual information
-		btbn mutinf -d ./examples/example.csv -o ./examples/example.mi
+	cd examples/
+	btbn struct -i 0 -t 2 -s example.pss -p example-parms.yaml -a iterative -b example.bnet
+
+Compute mutual information:
+
+	btbn mutinf -d example.csv -o example.mi
+
+#### Parameters file:
+
+YAML file containing specific parameters for the structure learning algorithms
+
+##### Parameters file fields:
+
+	treewidth:		structure's tree-width upper bound 
+	num_trees:		number of ktrees to sample and sort (used on selected strategy)
+	mutual_info:		precomputed mutual information file (used on selected strategy)
+	search_variation:	iterative search type (greedy or astar)
+
+##### Parameters file example:
+
+	./examples/example-parms.yaml
+	treewidth: 4
+	num_trees: 100
+	mutual_info: example.mi
+	search_variation: greedy
