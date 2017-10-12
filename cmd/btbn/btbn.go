@@ -9,9 +9,9 @@ import (
 // Define subcommand names
 const (
 	structConst = "struct"
-	structDescr = "learns bounded tree-width structure"
+	structDescr = "run bounded tree-width structure learning algorithm"
 	mutinfConst = "mutinf"
-	mutinfDescr = "computes variables pair-wise mutual information"
+	mutinfDescr = "computes pairwise mutual information"
 )
 
 // Define Flag variables
@@ -63,7 +63,7 @@ func initSubcommands() {
 	mutinfComm = flag.NewFlagSet(mutinfConst, flag.ExitOnError)
 
 	// struct subcommand flags
-	structComm.BoolVar(&verbose, "v", false, "prints detailed steps")
+	structComm.BoolVar(&verbose, "v", true, "prints detailed steps")
 	structComm.StringVar(&scoreFile, "s", "", "precomputed scores file")
 	structComm.StringVar(&parmFile, "p", "", "parameters file")
 	structComm.StringVar(&bnetFile, "b", "", "network output file")
@@ -78,10 +78,14 @@ func initSubcommands() {
 }
 
 func printDefaults() {
+	fmt.Printf("btbn is a tool for learning bounded tree-width Bayesian networks\n")
 	fmt.Printf("Usage:\n\n")
-	fmt.Printf("\tbtbn <command> [arguments]\n\n")
-	fmt.Printf("The command are:\n\n")
-	fmt.Printf("\t%v\t- %v\n", structConst, structDescr)
-	fmt.Printf("\t%v\t- %v\n", mutinfConst, mutinfDescr)
+	fmt.Printf("\tbtbn <command> [options]\n\n")
+	fmt.Printf("Commands:\n\n")
+	fmt.Printf("\t%v\t\t%v\n", structConst, structDescr)
+	fmt.Printf("\t%v\t\t%v\n", mutinfConst, mutinfDescr)
+	fmt.Println()
+	fmt.Printf("For usage details of each command, run:\n\n")
+	fmt.Printf("\tbtbn <command> --help\n")
 	fmt.Println()
 }
