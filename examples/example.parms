@@ -1,0 +1,6 @@
+treewidth: 4 
+
+num_trees: 100 
+mutual_info: example.mi
+
+search_variation: greedy

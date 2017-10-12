@@ -1,0 +1,20 @@
+META variables = 16
+META treewidth = 4
+META score = -133523.09863300013
+
+A: C G P
+B: C G P
+C: D G K
+D: N
+E: D N
+F: C D G N
+G: D K N
+H: F G N
+I: F G H N
+J: F H I N
+K: D N
+L: G K N P
+M: G K P
+N:
+O: K N P
+P: C G K N
