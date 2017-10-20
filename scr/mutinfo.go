@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/britojr/btbn/dfext"
 	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/ioutl"
 	"github.com/gonum/stat"
@@ -68,32 +69,13 @@ func ComputeMutInf(fname string) *MutInfo {
 
 	// compute empiric individual entropy for each variable and store it in the diagonal
 	for i := 0; i < df.Ncol(); i++ {
-		mat[i][i] = stat.Entropy(dataframeCounts(df.Select([]int{i}), true))
+		mat[i][i] = stat.Entropy(dfext.Counts(df.Select([]int{i}), true))
 	}
 	// compute pairwise mutual information for each pair and store in matrix lower triangle
 	for i := 0; i < df.Ncol(); i++ {
 		for j := 0; j < i; j++ {
-			mat[i][j] = stat.Entropy(dataframeCounts(df.Select([]int{i, j}), true))
+			mat[i][j] = stat.Entropy(dfext.Counts(df.Select([]int{i, j}), true))
 		}
 	}
 	return &MutInfo{mat}
-}
-
-// dataframeCounts returns the counts of unique joints of values
-// the order of the values is random
-// TODO: improve this with functionalities like like pandas:
-// Series.value_counts(normalize=False, sort=True, ascending=False, bins=None, dropna=True)
-func dataframeCounts(df dataframe.DataFrame, normalize bool) []float64 {
-	c := make(map[string]float64)
-	for _, v := range df.Records() {
-		c[strings.Join(v, ",")]++
-	}
-	vs := make([]float64, 0, len(c))
-	for _, v := range c {
-		if normalize {
-			v = v / float64(df.Nrow())
-		}
-		vs = append(vs, v)
-	}
-	return vs
 }
