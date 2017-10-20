@@ -71,7 +71,7 @@ func (s *SelectSampleSearch) ValidateParameters() {
 	if len(s.mutInfoFile) == 0 {
 		log.Panic("Mutual information file missing")
 	}
-	s.mutInfo = scr.ReadMutInfo(s.mutInfoFile)
+	s.mutInfo = scr.ReadMutInf(s.mutInfoFile)
 }
 
 // PrintParameters prints the algorithm's current parameters

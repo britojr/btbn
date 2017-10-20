@@ -37,7 +37,7 @@ func mutinfComputing() {
 
 	log.Println("Computing...")
 	start := time.Now()
-	mi := scr.ComputeFromDataset(dataFile)
+	mi := scr.ComputeMutInf(dataFile)
 	log.Println("Saving...")
 	mi.Write(mutinfFile)
 	elapsed := time.Since(start)
