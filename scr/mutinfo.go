@@ -2,20 +2,18 @@ package scr
 
 import (
 	"bufio"
-	"encoding/csv"
 	"fmt"
-	"io"
-	"math"
 	"strings"
 
 	"github.com/britojr/utl/conv"
-	"github.com/britojr/utl/errchk"
 	"github.com/britojr/utl/ioutl"
+	"github.com/gonum/stat"
+	"github.com/kniren/gota/dataframe"
 )
 
 // MutInfo handles mutual information
 type MutInfo struct {
-	mat [][]float64
+	mat [][]float64 // lower triangular matrix with pairwise mutual information
 }
 
 // Get returns the mutual information of a given pair of variables
@@ -43,8 +41,8 @@ func (m *MutInfo) Write(fname string) {
 	}
 }
 
-// ReadMutInfo reads a mutual information file
-func ReadMutInfo(fname string) *MutInfo {
+// ReadMutInf reads a mutual information file
+func ReadMutInf(fname string) *MutInfo {
 	f := ioutl.OpenFile(fname)
 	defer f.Close()
 	scanner := bufio.NewScanner(f)
@@ -54,81 +52,48 @@ func ReadMutInfo(fname string) *MutInfo {
 		line := conv.Satof(strings.Fields(scanner.Text()))
 		mat = append(mat, line)
 	}
-	m := new(MutInfo)
-	m.mat = mat
-	return m
+	return &MutInfo{mat}
 }
 
-// ComputeFromDataset reads a csv dataset and computes mutual information
-func ComputeFromDataset(fname string) *MutInfo {
-	// TODO: split in 3 steps: counting, entropy and information
-	// TODO: change counting to support non-binary values
+// ComputeMutInf computes mutual information from a csv dataset
+func ComputeMutInf(fname string) *MutInfo {
 	f := ioutl.OpenFile(fname)
 	defer f.Close()
-	r := csv.NewReader(bufio.NewReader(f))
+	df := dataframe.ReadCSV(bufio.NewReader(f))
 
-	var (
-		N   int
-		mx  [][]int     // individual count
-		mxy [][][][]int // pair count
-		mat [][]float64 // pair mutual information
-	)
-	r.Read() // ignore header line
-	record, err := r.Read()
-	for ; err != io.EOF; record, err = r.Read() {
-		errchk.Check(err, "")
-		N++
-		line := conv.Satoi(record)
-		if N == 1 {
-			mat = make([][]float64, len(line))
-			mx = make([][]int, len(line))
-			mxy = make([][][][]int, len(line))
-			for i := range line {
-				mxy[i] = make([][][]int, i)
-				mat[i] = make([]float64, i+1)
-			}
-		}
-		for i := range line {
-			for len(mx[i]) <= line[i] {
-				mx[i] = append(mx[i], 0)
-			}
-			mx[i][line[i]]++
-			for j := 0; j < i; j++ {
-				for len(mxy[i][j]) <= line[i] {
-					mxy[i][j] = append(mxy[i][j], []int{})
-				}
-				for len(mxy[i][j][line[i]]) <= line[j] {
-					mxy[i][j][line[i]] = append(mxy[i][j][line[i]], 0)
-				}
-				mxy[i][j][line[i]][line[j]]++
-			}
-		}
+	mat := make([][]float64, df.Ncol())
+	for i := range mat {
+		mat[i] = make([]float64, i+1)
 	}
-	logN := math.Log(float64(N))
-	hx := make([]float64, len(mx))
-	for i := range mx {
-		for k := range mx[i] {
-			if mx[i][k] > 0 {
-				hx[i] += float64(mx[i][k]) * math.Log(float64(mx[i][k]))
-			}
-		}
+
+	// compute empiric individual entropy for each variable and store it in the diagonal
+	for i := 0; i < df.Ncol(); i++ {
+		mat[i][i] = stat.Entropy(dataframeCounts(df.Select([]int{i}), true))
 	}
-	for i := range mxy {
+	// compute pairwise mutual information for each pair and store in matrix lower triangle
+	for i := 0; i < df.Ncol(); i++ {
 		for j := 0; j < i; j++ {
-			hij := float64(0)
-			for u := range mxy[i][j] {
-				for v := range mxy[i][j][u] {
-					if mxy[i][j][u][v] > 0 {
-						hij += float64(mxy[i][j][u][v]) * math.Log(float64(mxy[i][j][u][v]))
-					}
-				}
-			}
-			mat[i][j] = ((hij - hx[i] - hx[j]) / float64(N)) + logN
+			mat[i][j] = stat.Entropy(dataframeCounts(df.Select([]int{i, j}), true))
 		}
-		mat[i][i] = (-hx[i] / float64(N)) + logN
 	}
+	return &MutInfo{mat}
+}
 
-	m := new(MutInfo)
-	m.mat = mat
-	return m
+// dataframeCounts returns the counts of unique joints of values
+// the order of the values is random
+// TODO: improve this with functionalities like like pandas:
+// Series.value_counts(normalize=False, sort=True, ascending=False, bins=None, dropna=True)
+func dataframeCounts(df dataframe.DataFrame, normalize bool) []float64 {
+	c := make(map[string]float64)
+	for _, v := range df.Records() {
+		c[strings.Join(v, ",")]++
+	}
+	vs := make([]float64, 0, len(c))
+	for _, v := range c {
+		if normalize {
+			v = v / float64(df.Nrow())
+		}
+		vs = append(vs, v)
+	}
+	return vs
 }

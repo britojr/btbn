@@ -28,7 +28,7 @@ func TestComputeFromDataset(t *testing.T) {
 	for _, tt := range cases {
 		fname := ioutl.TempFile("mi_test", tt.content)
 		defer os.Remove(fname)
-		mi := ComputeFromDataset(fname)
+		mi := ComputeMutInf(fname)
 		if tt.nvar != mi.NVar() {
 			t.Errorf("wrong var number (%v)!=(%v)", tt.nvar, mi.NVar())
 		}
@@ -66,9 +66,9 @@ func TestWriteRead(t *testing.T) {
 		mifile := ioutl.TempFile("mi_test", tt.content)
 		defer os.Remove(dsfile)
 		defer os.Remove(mifile)
-		mi1 := ComputeFromDataset(dsfile)
+		mi1 := ComputeMutInf(dsfile)
 		mi1.Write(mifile)
-		mi := ReadMutInfo(mifile)
+		mi := ReadMutInf(mifile)
 		if tt.nvar != mi.NVar() {
 			t.Errorf("wrong var number (%v)!=(%v)", tt.nvar, mi.NVar())
 		}
