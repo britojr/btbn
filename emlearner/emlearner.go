@@ -4,21 +4,20 @@ package emlearner
 import (
 	"log"
 	"math"
+
+	"github.com/britojr/btbn/dataset"
+	"github.com/britojr/btbn/factor"
+	"github.com/britojr/btbn/inference"
+	"github.com/britojr/btbn/model"
 )
 
 // EMLearner implements Expectation-Maximization algorithm
 type EMLearner interface {
 	SetProperties(props map[string]string)
-	Run(model, dataset) (loglikelihood float64)
+	Run(model.BNet, dataset.EvidenceSet) (loglikelihood float64)
 }
 
-// temporary interfaces
-type model interface{}
-type evidenceset interface{}
-type infAlg interface {
-	Model() model
-}
-
+// implementation of EMLearner
 type emAlg struct {
 	maxIters  int     // max number of em iterations
 	threshold float64 // minimum improvement threshold
@@ -29,13 +28,13 @@ func (e *emAlg) SetProperties(props map[string]string) {
 	panic("emlearner: not implemented")
 }
 
-func (e *emAlg) Run(m model, ds evidenceset) (model, float64) {
+func (e *emAlg) Run(bn model.BNet, evset dataset.EvidenceSet) (model.BNet, float64) {
 	log.Printf("emlearner: start\n")
 	e.nIters = 0
-	infalg := e.start(m, ds)
+	infalg := e.start(bn, evset)
 	var llant, llnew float64
 	for {
-		llnew = e.runStep(infalg, ds)
+		llnew = e.runStep(infalg, evset)
 		e.nIters++
 		if llant != 0 && (e.nIters >= e.maxIters || (math.Abs((llnew-llant)/llant) < e.threshold)) {
 			break
@@ -44,48 +43,47 @@ func (e *emAlg) Run(m model, ds evidenceset) (model, float64) {
 		llant = llnew
 	}
 	log.Printf("emlearner: iterations=%v\n", e.nIters)
-	return infalg.Model(), llnew
+	return infalg.BNet(), llnew
 }
 
-func (e *emAlg) start(m model, ds evidenceset) infAlg {
+func (e *emAlg) start(bn model.BNet, evset dataset.EvidenceSet) inference.CTreeCalibration {
 	// define a starting point for model's parameters
 	// create an inference alg with the model
 	panic("emlearner: not implemented")
 }
 
-func (e *emAlg) runStep(infalg infAlg, ds evidenceset) float64 {
-	// runs expecttation step
-	// runs maximization step
-
+func (e *emAlg) runStep(infalg inference.CTreeCalibration, evset dataset.EvidenceSet) float64 {
 	// sufficient statistics for each node
-	count := make(map[int]factor)
+	count := make(map[int]factor.Factor)
 
+	// runs expecttation step
 	var ll float64
-	for _, evid := range ds.Maps() {
+	for _, evid := range evset.Observations() {
 		// evid is a map of var to state
 		infalg.SetEvidence(evid)
-		evidLikelihood = m.Propagate()
+		evidLikelihood := infalg.Run()
 		ll += math.Log(evidLikelihood)
 
 		// updates sufficient statistics for each node
-		for i, node := range infalg.Model().Nodes() {
-			frac := infalg.ComputeFamilyBelief(node)
-			if count[i] {
-				count[i].Plus(frac)
+		bn := infalg.BNet()
+		for _, v := range bn.Variables() {
+			frac := infalg.FamilyBelief(v)
+			if _, ok := count[v.ID()]; !ok {
+				count[v.ID()].Plus(frac)
 			} else {
-				count[i] = frac
+				count[v.ID()] = frac
 			}
 		}
 	}
 
+	// runs maximization step
 	// updates parameters
-	for i, node := range infalg.Model().Nodes() {
-		cpt := count[i]
-		cpt.Normalize(node.Variable())
-		Node.setCpt(cpt)
+	bn := infalg.BNet()
+	for _, v := range bn.Variables() {
+		count[v.ID()].Normalize(v)
+		bn.SetCPT(count[v.ID()])
 	}
-
 	// updates loglikelihood of optimized model
-	m.setLoglikelihood(ds, ll)
-	panic("emlearner: not implemented")
+	// m.SetLoglikelihood(ds, ll)
+	return ll
 }
