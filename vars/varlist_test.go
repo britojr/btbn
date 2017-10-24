@@ -112,6 +112,8 @@ func TestUnion(t *testing.T) {
 	}{
 		{[]int(nil), []int(nil), []int(nil)},
 		{[]int{1}, []int{1}, []int{1}},
+		{[]int{3}, []int{1}, []int{1, 3}},
+		{[]int{1}, []int{3}, []int{1, 3}},
 		{[]int{2, 3}, []int{}, []int{2, 3}},
 		{[]int{}, []int{3, 4}, []int{3, 4}},
 		{[]int{6, 4, 2, 8}, []int{8, 9, 3, 1, 2}, []int{1, 2, 3, 4, 6, 8, 9}},

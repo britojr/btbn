@@ -38,6 +38,7 @@ func New(vs vars.VarList) (f *Factor) {
 
 // Copy returns a copy of f
 func (f *Factor) Copy() (g *Factor) {
+	g = new(Factor)
 	g.vs = f.vs.Copy()
 	g.values = make([]float64, len(f.values))
 	copy(g.values, f.values)
