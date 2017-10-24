@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/britojr/btbn/dataset"
-	"github.com/britojr/btbn/factor"
 	"github.com/britojr/btbn/inference"
 	"github.com/britojr/btbn/model"
 )
@@ -14,7 +13,7 @@ import (
 // EMLearner implements Expectation-Maximization algorithm
 type EMLearner interface {
 	SetProperties(props map[string]string)
-	Run(model.BNet, dataset.EvidenceSet) (loglikelihood float64)
+	Run(model.Model, dataset.EvidenceSet) (loglikelihood float64)
 }
 
 // implementation of EMLearner
@@ -28,13 +27,13 @@ func (e *emAlg) SetProperties(props map[string]string) {
 	panic("emlearner: not implemented")
 }
 
-func (e *emAlg) Run(bn model.BNet, evset dataset.EvidenceSet) (model.BNet, float64) {
+func (e *emAlg) Run(m model.Model, evset dataset.EvidenceSet) (model.Model, float64) {
 	log.Printf("emlearner: start\n")
 	e.nIters = 0
-	infalg := e.start(bn, evset)
+	infalg := e.start(m, evset)
 	var llant, llnew float64
 	for {
-		llnew = e.runStep(infalg, evset)
+		m, llnew = e.runStep(infalg, evset)
 		e.nIters++
 		if llant != 0 && (e.nIters >= e.maxIters || (math.Abs((llnew-llant)/llant) < e.threshold)) {
 			break
@@ -43,20 +42,19 @@ func (e *emAlg) Run(bn model.BNet, evset dataset.EvidenceSet) (model.BNet, float
 		llant = llnew
 	}
 	log.Printf("emlearner: iterations=%v\n", e.nIters)
-	return infalg.BNet(), llnew
+	return m, llnew
 }
 
-func (e *emAlg) start(bn model.BNet, evset dataset.EvidenceSet) inference.CTreeCalibration {
+func (e *emAlg) start(m model.Model, evset dataset.EvidenceSet) inference.InfAlg {
 	// define a starting point for model's parameters
 	// create an inference alg with the model
 	panic("emlearner: not implemented")
 }
 
-func (e *emAlg) runStep(infalg inference.CTreeCalibration, evset dataset.EvidenceSet) float64 {
-	// sufficient statistics for each node
-	count := make(map[int]factor.Factor)
-
-	// runs expecttation step
+func (e *emAlg) runStep(infalg inference.InfAlg, evset dataset.EvidenceSet) (model.Model, float64) {
+	// expecttation step
+	// use a copy of the model to hold the sufficient statistics
+	var count, m model.Model = nil, nil
 	var ll float64
 	for _, evid := range evset.Observations() {
 		// evid is a map of var to state
@@ -64,26 +62,19 @@ func (e *emAlg) runStep(infalg inference.CTreeCalibration, evset dataset.Evidenc
 		evidLikelihood := infalg.Run()
 		ll += math.Log(evidLikelihood)
 
-		// updates sufficient statistics for each node
-		bn := infalg.BNet()
-		for _, v := range bn.Variables() {
-			frac := infalg.FamilyBelief(v)
-			if _, ok := count[v.ID()]; !ok {
-				count[v.ID()].Plus(frac)
-			} else {
-				count[v.ID()] = frac
-			}
+		// acumulates sufficient statistics on the copy model
+		m = infalg.Model()
+		if count == nil {
+			count = m.Copy()
+		} else {
+			count.Plus(m)
 		}
 	}
 
-	// runs maximization step
+	// maximization step
 	// updates parameters
-	bn := infalg.BNet()
-	for _, v := range bn.Variables() {
-		count[v.ID()].Normalize(v)
-		bn.SetCPT(count[v.ID()])
-	}
+	m.SetParameters(count.Normalize())
 	// updates loglikelihood of optimized model
 	// m.SetLoglikelihood(ds, ll)
-	return ll
+	return m, ll
 }
