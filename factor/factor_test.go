@@ -4,8 +4,9 @@ import (
 	"reflect"
 	"testing"
 
+	"gonum.org/v1/gonum/floats"
+
 	"github.com/britojr/btbn/vars"
-	"github.com/gonum/floats"
 )
 
 func TestNew(t *testing.T) {

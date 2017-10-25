@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"sort"
 
+	"gonum.org/v1/gonum/floats"
+
 	"github.com/britojr/btbn/bnstruct"
 	"github.com/britojr/btbn/daglearner"
 	"github.com/britojr/btbn/ktree"
@@ -16,7 +18,6 @@ import (
 	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/errchk"
 	"github.com/britojr/utl/stats"
-	"github.com/gonum/floats"
 )
 
 // SelectSampleSearch implements the select sampling strategy

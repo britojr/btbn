@@ -2,7 +2,7 @@ package factor
 
 import (
 	"github.com/britojr/btbn/vars"
-	"github.com/gonum/floats"
+	"gonum.org/v1/gonum/floats"
 )
 
 // Factor defines a function that maps a joint of categorical variables to float values

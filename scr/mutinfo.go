@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"strings"
 
+	"gonum.org/v1/gonum/stat"
+
 	"github.com/britojr/btbn/dfext"
 	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/ioutl"
-	"github.com/gonum/stat"
 	"github.com/kniren/gota/dataframe"
 )
 
