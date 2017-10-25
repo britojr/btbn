@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/britojr/btbn/dataset"
+	"github.com/britojr/btbn/factor"
 	"github.com/britojr/btbn/inference"
 	"github.com/britojr/btbn/model"
 )
@@ -29,11 +30,12 @@ func (e *emAlg) SetProperties(props map[string]string) {
 
 func (e *emAlg) Run(m model.Model, evset dataset.EvidenceSet) (model.Model, float64) {
 	log.Printf("emlearner: start\n")
+	infalg := inference.NewCTreeCalibration(model.ToCTree(m))
 	e.nIters = 0
-	infalg := e.start(m, evset)
+	e.start(infalg, evset)
 	var llant, llnew float64
 	for {
-		m, llnew = e.runStep(infalg, evset)
+		llnew = e.runStep(infalg, evset)
 		e.nIters++
 		if llant != 0 && (e.nIters >= e.maxIters || (math.Abs((llnew-llant)/llant) < e.threshold)) {
 			break
@@ -42,39 +44,44 @@ func (e *emAlg) Run(m model.Model, evset dataset.EvidenceSet) (model.Model, floa
 		llant = llnew
 	}
 	log.Printf("emlearner: iterations=%v\n", e.nIters)
-	return m, llnew
+	return infalg.SetModelParms(m), llnew
 }
 
-func (e *emAlg) start(m model.Model, evset dataset.EvidenceSet) inference.InfAlg {
+func (e *emAlg) start(infalg inference.InfAlg, evset dataset.EvidenceSet) {
 	// define a starting point for model's parameters
 	// create an inference alg with the model
 	panic("emlearner: not implemented")
 }
 
-func (e *emAlg) runStep(infalg inference.InfAlg, evset dataset.EvidenceSet) (model.Model, float64) {
+func (e *emAlg) runStep(infalg inference.InfAlg, evset dataset.EvidenceSet) float64 {
 	// expecttation step
-	// use a copy of the model to hold the sufficient statistics
-	var count, m model.Model = nil, nil
+	// to hold the sufficient statistics
+	count := make([]*factor.Factor, len(infalg.CalibPotList()))
 	var ll float64
 	for _, evid := range evset.Observations() {
 		// evid is a map of var to state
-		infalg.SetEvidence(evid)
-		evidLikelihood := infalg.Run()
-		ll += math.Log(evidLikelihood)
+		evLkhood := infalg.Run(evid)
+		ll += math.Log(evLkhood)
 
-		// acumulates sufficient statistics on the copy model
-		m = infalg.Model()
-		if count == nil {
-			count = m.Copy()
-		} else {
-			count.Plus(m)
+		// acumulates sufficient statistics on the copy of parameters
+		ps := infalg.CalibPotList()
+		for i, p := range ps {
+			if count[i] == nil {
+				count[i] = p.Copy()
+			} else {
+				count[i].Plus(p)
+			}
 		}
 	}
 
 	// maximization step
 	// updates parameters
-	m.SetParameters(count.Normalize())
+	for i := range count {
+		count[i].Normalize()
+	}
+	infalg.SetOrigPotList(count)
+
 	// updates loglikelihood of optimized model
 	// m.SetLoglikelihood(ds, ll)
-	return m, ll
+	return ll
 }

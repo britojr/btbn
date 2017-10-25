@@ -1,18 +1,20 @@
 package model
 
 import (
+	"github.com/britojr/btbn/factor"
 	"github.com/britojr/btbn/vars"
-	"github.com/britojr/kbn/factor"
 )
 
 // Model defines a probabilistic graphical model
 type Model interface {
-	// Variables() vars.VarList
-	// SetCPT(*factor.Factor)
 	Copy() Model
 	Plus(Model) Model
 	SetParameters(Model) Model
 	Normalize() Model
+	CTree() *CTree
+	SetCTree(*CTree)
+	// Variables() vars.VarList
+	// SetCPT(*factor.Factor)
 }
 
 type bnet struct {
@@ -24,8 +26,7 @@ type bnode struct {
 }
 
 // NewBNet creates a new bnet model
-// func NewBNet() Model {
-func NewBNet() *bnet {
+func NewBNet() Model {
 	b := new(bnet)
 	b.nodes = make(map[*vars.Var]*bnode)
 	return b
@@ -35,7 +36,24 @@ func (b bnet) SetFamily(varx *vars.Var, cpt *factor.Factor) {
 	b.nodes[varx] = &bnode{cpt}
 }
 
-func (b bnet) SetCTree() {
+func (b bnet) CTree() *CTree {
+	panic("model: not implemented")
+}
+
+func (b bnet) SetCTree(*CTree) {
+	panic("model: not implemented")
+}
+
+func (b bnet) Copy() Model {
+	panic("model: not implemented")
+}
+func (b bnet) Plus(Model) Model {
+	panic("model: not implemented")
+}
+func (b bnet) SetParameters(Model) Model {
+	panic("model: not implemented")
+}
+func (b bnet) Normalize() Model {
 	panic("model: not implemented")
 }
 

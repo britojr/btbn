@@ -61,6 +61,12 @@ func (f *Factor) Times(g *Factor) *Factor {
 	return f.operation(g, opMul)
 }
 
+// TimesNew creates a new factor h = f * g
+func (f *Factor) TimesNew(g *Factor) *Factor {
+	// TODO: improve here using operationNew
+	return f.Copy().operation(g, opMul)
+}
+
 // operation applies given operation as f = f op g
 func (f *Factor) operation(g *Factor, op func(a, b float64) float64) *Factor {
 	if f.vs.Equal(g.vs) {
@@ -129,4 +135,13 @@ func (f *Factor) SumOut(xs ...*vars.Var) *Factor {
 		ixf.Next()
 	}
 	return f
+}
+
+// SumOutNew returns a new factor with the given variables summed out
+func (f *Factor) SumOutNew(xs ...*vars.Var) *Factor {
+	return f.Copy().SumOut(xs...)
+}
+
+func (f *Factor) Reduce(e map[int]int) *Factor {
+	panic("factor: not implemented")
 }
