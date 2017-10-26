@@ -1,6 +1,9 @@
 package factor
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/britojr/btbn/vars"
 	"gonum.org/v1/gonum/floats"
 )
@@ -49,6 +52,17 @@ func (f *Factor) Copy() (g *Factor) {
 func (f *Factor) SetValues(values []float64) *Factor {
 	copy(f.values, values)
 	return f
+}
+
+// RandomDistribute sets values with a random distribution
+func (f *Factor) RandomDistribute(xs ...*vars.Var) *Factor {
+	rand.Seed(time.Now().UTC().UnixNano())
+	for i := range f.values {
+		for f.values[i] <= 0 {
+			f.values[i] = rand.Float64()
+		}
+	}
+	return f.Normalize(xs...)
 }
 
 // Plus adds g to f
@@ -142,6 +156,7 @@ func (f *Factor) SumOutNew(xs ...*vars.Var) *Factor {
 	return f.Copy().SumOut(xs...)
 }
 
+// Reduce silences the values that are not compatible with the given evidence
 func (f *Factor) Reduce(e map[int]int) *Factor {
 	panic("factor: not implemented")
 }

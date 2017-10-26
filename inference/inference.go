@@ -11,6 +11,7 @@ type InfAlg interface {
 	Run(dataset.Evidence) float64
 	CalibPotList() []*factor.Factor
 	SetOrigPotList([]*factor.Factor)
+	OrigPotList() []*factor.Factor
 }
 
 type cTCalib struct {
@@ -35,6 +36,11 @@ func NewCTreeCalibration(ct *model.CTree) *cTCalib {
 
 // SetModelParms sets model's parameters based on the internal ctree
 func (c *cTCalib) SetModelParms(m model.Model) model.Model {
+	panic("inference: not implemented")
+}
+
+// OrigPotList returns reference for ctree original parameters
+func (c *cTCalib) OrigPotList() []*factor.Factor {
 	panic("inference: not implemented")
 }
 
