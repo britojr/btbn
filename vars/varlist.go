@@ -66,7 +66,7 @@ func (vl VarList) Diff(other VarList) (w VarList) {
 	return
 }
 
-// Union returns new list with elements in vl and in other
+// Union returns new list merging elements in vl and in other
 func (vl VarList) Union(other VarList) (w VarList) {
 	w = make([]*Var, 0, len(vl)+len(other))
 	j := 0
@@ -83,6 +83,23 @@ func (vl VarList) Union(other VarList) (w VarList) {
 	}
 	for ; j < len(other); j++ {
 		w = append(w, other[j])
+	}
+	return
+}
+
+// IntersecID returns new list with elements present in vl and in ids
+func (vl VarList) IntersecID(ids ...int) (w VarList) {
+	sort.Ints(ids)
+	w = make([]*Var, 0, len(vl))
+	j := 0
+	for _, v := range vl {
+		for ; j < len(ids) && ids[j] < v.ID(); j++ {
+		}
+		if j < len(ids) && ids[j] == v.ID() {
+			w = append(w, v)
+			j++
+			continue
+		}
 	}
 	return
 }

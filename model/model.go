@@ -8,11 +8,11 @@ import (
 // Model defines a probabilistic graphical model
 type Model interface {
 	Copy() Model
-	Plus(Model) Model
-	SetParameters(Model) Model
-	Normalize() Model
-	CTree() *CTree
-	SetCTree(*CTree)
+	// Plus(Model) Model
+	// SetParameters(Model) Model
+	// Normalize() Model
+	// CTree() *CTree
+	// SetCTree(*CTree)
 	// Variables() vars.VarList
 	// SetCPT(*factor.Factor)
 }

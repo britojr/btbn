@@ -169,6 +169,16 @@ func (f *Factor) SumOutNew(xs ...*vars.Var) *Factor {
 	return f.Copy().SumOut(xs...)
 }
 
+// SumOutID sums out the variables given by id
+func (f *Factor) SumOutID(ids ...int) *Factor {
+	return f.SumOut(f.vs.IntersecID(ids...)...)
+}
+
+// SumOutIDNew returns a new factor with the given variables summed out
+func (f *Factor) SumOutIDNew(ids ...int) *Factor {
+	return f.SumOutNew(f.vs.IntersecID(ids...)...)
+}
+
 // Reduce silences the values that are not compatible with the given evidence
 func (f *Factor) Reduce(e map[int]int) *Factor {
 	panic("factor: not implemented")

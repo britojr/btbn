@@ -4,6 +4,7 @@ import (
 	"github.com/britojr/btbn/dataset"
 	"github.com/britojr/btbn/factor"
 	"github.com/britojr/btbn/model"
+	"github.com/gonum/floats"
 )
 
 // InfAlg defines an inference algorithm
@@ -12,6 +13,7 @@ type InfAlg interface {
 	CalibPotList() []*factor.Factor
 	SetOrigPotList([]*factor.Factor)
 	OrigPotList() []*factor.Factor
+	SetModelParms(m model.Model) model.Model
 }
 
 type cTCalib struct {
@@ -26,38 +28,48 @@ type cTCalib struct {
 }
 
 // NewCTreeCalibration creates a new clique tree calibration runner
-func NewCTreeCalibration(ct *model.CTree) *cTCalib {
+func NewCTreeCalibration(ct *model.CTree) InfAlg {
 	c := new(cTCalib)
 	c.ct = ct
 	c.size = ct.NCliques()
+
+	// initialize slices to be used on calibration
+	c.initPot = make([]*factor.Factor, c.size)
 	c.calibPot = make([]*factor.Factor, c.size)
+	c.calibPotSepSet = make([]*factor.Factor, c.size)
+	c.send = make([]*factor.Factor, c.size)
+	c.receive = make([]*factor.Factor, c.size)
+	c.prev = make([][]*factor.Factor, c.size)
+	c.post = make([][]*factor.Factor, c.size)
 	return c
 }
 
-// SetModelParms sets model's parameters based on the internal ctree
+// SetModelParms updates model's parameters based on the internal ctree
 func (c *cTCalib) SetModelParms(m model.Model) model.Model {
 	panic("inference: not implemented")
 }
 
 // OrigPotList returns reference for ctree original parameters
 func (c *cTCalib) OrigPotList() []*factor.Factor {
-	panic("inference: not implemented")
+	return c.ct.Potentials()
 }
 
 // SetOrigPotList updates internat ctree parameters
 func (c *cTCalib) SetOrigPotList(ps []*factor.Factor) {
-	panic("inference: not implemented")
+	c.ct.SetPotentials(ps)
 }
 
 // CalibPotList returns calibrated potentials
 func (c *cTCalib) CalibPotList() []*factor.Factor {
-	panic("inference: not implemented")
+	return c.calibPot
 }
 
 func (c *cTCalib) Run(e dataset.Evidence) float64 {
 	c.applyEvidence(e)
 	c.upDownCalibration()
-	panic("inference: not implemented")
+	// after applying evidence and calibratin
+	// the sum of any potential is probability of evidence
+	return floats.Sum(c.calibPot[0].Values())
 }
 
 // applyEvidence initialize the potentials with a copy of the original potentials
@@ -68,13 +80,12 @@ func (c *cTCalib) applyEvidence(e dataset.Evidence) {
 	}
 }
 
+// upDownCalibration runs two-passage message passing clique tree calibration
+// by the end, every node should have the joint distribution of its respective clique variables
 func (c *cTCalib) upDownCalibration() {
 	// -------------------------------------------------------------------------
 	// send[i] contains the message the ith node sends up to its parent
 	// receive[i] contains the message the ith node receives from his parent
-	// -------------------------------------------------------------------------
-	c.send = make([]*factor.Factor, c.size)
-	c.receive = make([]*factor.Factor, c.size)
 	// -------------------------------------------------------------------------
 	// post[i][j] contains the product of every message that node i received
 	// from its j+1 children to the last children
@@ -82,43 +93,38 @@ func (c *cTCalib) upDownCalibration() {
 	// every message that node i received from its fist children to the j-1 children
 	// So the message to be sent from i to j will be the product of prev and post
 	// -------------------------------------------------------------------------
-	c.prev = make([][]*factor.Factor, c.size)
-	c.post = make([][]*factor.Factor, c.size)
 
-	c.calibPot = make([]*factor.Factor, c.size)
-	c.calibPotSepSet = make([]*factor.Factor, c.size)
-	root := 0
-
+	root := c.ct.RootID()
 	c.upwardmessage(root, -1)
 	c.downwardmessage(-1, root)
 }
 
 func (c *cTCalib) upwardmessage(v, pa int) {
-	neighb := c.ct.Neighb(v)
-	c.prev[v] = make([]*factor.Factor, 1, len(neighb)+1)
+	neighbors := c.ct.Neighbors(v)
+	c.prev[v] = make([]*factor.Factor, 1, len(neighbors)+1)
 	c.prev[v][0] = c.initPot[v]
-	for _, ne := range neighb {
+	for _, ne := range neighbors {
 		if ne != pa {
 			c.upwardmessage(ne, v)
 			c.prev[v] = append(c.prev[v], c.send[ne].TimesNew(c.prev[v][len(c.prev[v])-1]))
 		}
 	}
 	if pa != -1 {
-		c.send[v] = c.prev[v][len(c.prev[v])-1].SumOutNew(c.ct.VarIn(v))
+		c.send[v] = c.prev[v][len(c.prev[v])-1].SumOutIDNew(c.ct.VarIn(v)...)
 	}
 }
 
 func (c *cTCalib) downwardmessage(pa, v int) {
-	neighb := c.ct.Neighb(v)
+	neighbors := c.ct.Neighbors(v)
 	c.calibPot[v] = c.prev[v][len(c.prev[v])-1]
-	n := len(neighb)
+	n := len(neighbors)
 	if pa != -1 {
 		c.calibPot[v].Times(c.receive[v])
 		n--
 		// calculate calibrated sepset
-		c.calibPotSepSet[v] = c.calibPot[v].SumOutNew(c.ct.VarIn(v))
+		c.calibPotSepSet[v] = c.calibPot[v].SumOutIDNew(c.ct.VarIn(v)...)
 	}
-	if len(neighb) == 1 && pa != -1 {
+	if len(neighbors) == 1 && pa != -1 {
 		return
 	}
 
@@ -126,8 +132,8 @@ func (c *cTCalib) downwardmessage(pa, v int) {
 	i := len(c.post[v]) - 1
 	c.post[v][i] = c.receive[v]
 	i--
-	for k := len(neighb) - 1; k >= 0 && i >= 0; k-- {
-		ch := neighb[k]
+	for k := len(neighbors) - 1; k >= 0 && i >= 0; k-- {
+		ch := neighbors[k]
 		if ch == pa {
 			continue
 		}
@@ -139,7 +145,7 @@ func (c *cTCalib) downwardmessage(pa, v int) {
 	}
 
 	k := 0
-	for _, ch := range neighb {
+	for _, ch := range neighbors {
 		if ch == pa {
 			continue
 		}
@@ -147,7 +153,7 @@ func (c *cTCalib) downwardmessage(pa, v int) {
 		if c.post[v][k] != nil {
 			msg.Times(c.post[v][k])
 		}
-		c.receive[ch] = msg.SumOut(c.ct.VarOut(ch))
+		c.receive[ch] = msg.SumOutID(c.ct.VarOut(ch)...)
 		c.downwardmessage(v, ch)
 		k++
 	}
