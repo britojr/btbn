@@ -54,6 +54,12 @@ func (f *Factor) SetValues(values []float64) *Factor {
 	return f
 }
 
+// Values return reference for factor values
+func (f *Factor) Values() []float64 {
+	// TODO: check if this is really necessary
+	return f.values
+}
+
 // RandomDistribute sets values with a random distribution
 func (f *Factor) RandomDistribute(xs ...*vars.Var) *Factor {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -106,17 +112,12 @@ func (f *Factor) operation(g *Factor, op func(a, b float64) float64) *Factor {
 // the normalization can be conditional in one variable
 func (f *Factor) Normalize(xs ...*vars.Var) *Factor {
 	if len(xs) == 0 {
-		sum := floats.Sum(f.values)
-		if sum != 0 {
-			for i := range f.values {
-				f.values[i] /= sum
-			}
-		} else {
-			panic("factor: all values add up to zero")
-		}
-		return f
+		return f.normalizeAll()
 	}
 	condVars := f.vs.Diff(xs)
+	if len(condVars) == 0 {
+		return f.normalizeAll()
+	}
 	ixf := vars.NewIndexFor(condVars, f.vs)
 	sums := make([]float64, condVars.NStates())
 	for _, v := range f.values {
@@ -131,6 +132,18 @@ func (f *Factor) Normalize(xs ...*vars.Var) *Factor {
 			panic("factor: conditional prob with zero sum")
 		}
 		ixf.Next()
+	}
+	return f
+}
+
+func (f *Factor) normalizeAll() *Factor {
+	sum := floats.Sum(f.values)
+	if sum != 0 {
+		for i := range f.values {
+			f.values[i] /= sum
+		}
+	} else {
+		panic("factor: all values add up to zero")
 	}
 	return f
 }
