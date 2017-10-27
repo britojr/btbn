@@ -127,9 +127,9 @@ func (f *Factor) Normalize(xs ...*vars.Var) *Factor {
 		return f.normalizeAll()
 	}
 	condVars := f.vs.Diff(xs)
-	if len(condVars) == 0 {
-		return f.normalizeAll()
-	}
+	// if len(condVars) == 0 {
+	// 	return f.normalizeAll()
+	// }
 	ixf := vars.NewIndexFor(condVars, f.vs)
 	sums := make([]float64, condVars.NStates())
 	for _, v := range f.values {
@@ -179,7 +179,7 @@ func (f *Factor) SumOut(xs ...*vars.Var) *Factor {
 
 // Marginalize projects the distribution in the given variables
 func (f *Factor) Marginalize(xs ...*vars.Var) *Factor {
-	return f.SumOut(vars.VarList(xs).Diff(f.vs)...)
+	return f.SumOut(f.vs.Diff(xs)...)
 }
 
 // Reduce silences the values that are not compatible with the given evidence

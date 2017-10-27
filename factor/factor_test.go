@@ -169,6 +169,63 @@ func TestSumout(t *testing.T) {
 	}
 }
 
+func TestMarginalize(t *testing.T) {
+	cases := []struct {
+		f      *Factor
+		vs     vars.VarList
+		result []float64
+	}{{
+		New(vars.NewList([]int{0, 1, 2}, []int{3, 2, 2})...).SetValues(
+			[]float64{0.25, 0.05, 0.15, 0.08, 0.00, 0.09, 0.35, 0.07, 0.21, 0.16, 0.00, 0.18},
+		),
+		vars.NewList([]int{0, 2}, []int{3, 2}),
+		[]float64{0.33, 0.05, 0.24, 0.51, 0.07, 0.39},
+	}, {
+		New(vars.NewList([]int{0, 1, 2}, []int{3, 2, 2})...).SetValues(
+			[]float64{0.25, 0.05, 0.15, 0.08, 0.00, 0.09, 0.35, 0.07, 0.21, 0.16, 0.00, 0.18},
+		),
+		vars.NewList([]int{0, 2, 4}, []int{3, 2, 2}),
+		[]float64{0.33, 0.05, 0.24, 0.51, 0.07, 0.39},
+	}, {
+		New(vars.NewList([]int{0, 1, 2}, []int{3, 2, 2})...).SetValues(
+			[]float64{0.25, 0.05, 0.15, 0.08, 0.00, 0.09, 0.35, 0.07, 0.21, 0.16, 0.00, 0.18},
+		),
+		vars.NewList([]int{0, 1}, []int{3, 2}),
+		[]float64{0.60, 0.12, 0.36, 0.24, 0.0, 0.27},
+	}, {
+		New(vars.NewList([]int{0, 1, 2}, []int{3, 2, 2})...).SetValues(
+			[]float64{0.25, 0.05, 0.15, 0.08, 0.00, 0.09, 0.35, 0.07, 0.21, 0.16, 0.00, 0.18},
+		),
+		vars.NewList([]int{1, 2}, []int{2, 2}),
+		[]float64{0.45, 0.17, 0.63, 0.34},
+	}, {
+		New(vars.NewList([]int{0, 1, 2}, nil)...).SetValues(
+			[]float64{0.25, 0.25, 0.25, 0.25, .5, .5, 1, 1},
+		),
+		vars.NewList([]int{}, nil),
+		[]float64{4},
+	}, {
+		New(vars.NewList([]int{0, 1, 2}, nil)...).SetValues(
+			[]float64{0.25, 0.25, 0.25, 0.25, .5, .5, 1, 1},
+		),
+		vars.NewList([]int{2}, nil),
+		[]float64{1, 3},
+	}, {
+		New(vars.NewList([]int{0, 1, 2}, nil)...).SetValues(
+			[]float64{0.25, 0.25, 0.25, 0.25, .5, .5, 1, 1},
+		),
+		vars.NewList([]int{0, 1, 2}, nil),
+		[]float64{0.25, 0.25, 0.25, 0.25, .5, .5, 1, 1},
+	}}
+	for _, tt := range cases {
+		got := tt.f
+		got.Marginalize(tt.vs...)
+		if !floats.EqualApprox(tt.result, got.values, tol) {
+			t.Errorf("wrong result %v != %v", tt.result, got.values)
+		}
+	}
+}
+
 func TestNormalize(t *testing.T) {
 	cases := []struct {
 		f      *Factor
