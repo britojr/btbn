@@ -26,12 +26,16 @@ var (
 	opMul = func(a, b float64) float64 { return a * b }
 )
 
+var seed = func() int64 {
+	return time.Now().UnixNano()
+}
+
 // New creates a new factor with uniform distribution for given variables
 // a factor with no variables have a value of one
-func New(vs vars.VarList) (f *Factor) {
+func New(xs ...*vars.Var) (f *Factor) {
 	f = new(Factor)
-	f.vs = vs.Copy()
-	f.values = make([]float64, vs.NStates())
+	f.vs = vars.VarList(xs).Copy()
+	f.values = make([]float64, f.vs.NStates())
 	tot := float64(len(f.values))
 	for i := range f.values {
 		f.values[i] = 1 / tot
@@ -56,22 +60,21 @@ func (f *Factor) SetValues(values []float64) *Factor {
 
 // Values return reference for factor values
 func (f *Factor) Values() []float64 {
-	// TODO: check if this is really necessary
 	return f.values
 }
 
 // Variables return reference for factor variables
 func (f *Factor) Variables() vars.VarList {
-	// TODO: check if this is really necessary
 	return f.vs
 }
 
 // RandomDistribute sets values with a random distribution
 func (f *Factor) RandomDistribute(xs ...*vars.Var) *Factor {
-	rand.Seed(time.Now().UTC().UnixNano())
+	r := rand.New(rand.NewSource(seed()))
 	for i := range f.values {
+		f.values[i] = r.Float64()
 		for f.values[i] <= 0 {
-			f.values[i] = rand.Float64()
+			f.values[i] = r.Float64()
 		}
 	}
 	return f.Normalize(xs...)
@@ -79,37 +82,40 @@ func (f *Factor) RandomDistribute(xs ...*vars.Var) *Factor {
 
 // Plus adds g to f
 func (f *Factor) Plus(g *Factor) *Factor {
-	return f.operation(g, opAdd)
+	return f.operationIn(g, opAdd)
 }
 
 // Times multiplies f by g
 func (f *Factor) Times(g *Factor) *Factor {
-	return f.operation(g, opMul)
-}
-
-// TimesNew creates a new factor h = f * g
-func (f *Factor) TimesNew(g *Factor) *Factor {
-	// TODO: improve here using operationNew
-	return f.Copy().operation(g, opMul)
+	return f.operationIn(g, opMul)
 }
 
 // operation applies given operation as f = f op g
-func (f *Factor) operation(g *Factor, op func(a, b float64) float64) *Factor {
+func (f *Factor) operationIn(g *Factor, op func(a, b float64) float64) *Factor {
 	if f.vs.Equal(g.vs) {
-		for i, v := range g.values {
-			f.values[i] = op(f.values[i], v)
-		}
-		return f
+		return f.operationEq(g, op)
 	}
-	h := f.Copy()
-	f.vs = h.vs.Union(g.vs)
+	return f.operationTr(f.Copy(), g, op)
+}
+
+// operationEq applies given operation as f = f op g assuming equal sets of variables
+func (f *Factor) operationEq(g *Factor, op func(a, b float64) float64) *Factor {
+	for i, v := range g.values {
+		f.values[i] = op(f.values[i], v)
+	}
+	return f
+}
+
+// operationTr returns applies given operation as operation f = f1 op f2
+func (f *Factor) operationTr(f1, f2 *Factor, op func(a, b float64) float64) *Factor {
+	f.vs = f1.vs.Union(f2.vs)
 	f.values = make([]float64, f.vs.NStates())
-	ixh := vars.NewIndexFor(h.vs, f.vs)
-	ixg := vars.NewIndexFor(g.vs, f.vs)
+	ixf1 := vars.NewIndexFor(f1.vs, f.vs)
+	ixf2 := vars.NewIndexFor(f2.vs, f.vs)
 	for i := range f.values {
-		f.values[i] = op(h.values[ixh.I()], g.values[ixg.I()])
-		ixh.Next()
-		ixg.Next()
+		f.values[i] = op(f1.values[ixf1.I()], f2.values[ixf2.I()])
+		ixf1.Next()
+		ixf2.Next()
 	}
 	return f
 }
@@ -159,22 +165,47 @@ func (f *Factor) SumOut(xs ...*vars.Var) *Factor {
 	if len(xs) == 0 {
 		return f
 	}
-	h := f.Copy()
-	f.vs = h.vs.Diff(xs)
+	oldVs := f.vs
+	oldVal := f.values
+	f.vs = oldVs.Diff(xs)
 	f.values = make([]float64, f.vs.NStates())
-	ixf := vars.NewIndexFor(f.vs, h.vs)
-	for _, v := range h.values {
+	ixf := vars.NewIndexFor(f.vs, oldVs)
+	for _, v := range oldVal {
 		f.values[ixf.I()] += v
 		ixf.Next()
 	}
 	return f
 }
 
-// SumOutNew returns a new factor with the given variables summed out
-func (f *Factor) SumOutNew(xs ...*vars.Var) *Factor {
-	return f.Copy().SumOut(xs...)
+// Marginalize projects the distribution in the given variables
+func (f *Factor) Marginalize(xs ...*vars.Var) *Factor {
+	return f.SumOut(vars.VarList(xs).Diff(f.vs)...)
 }
 
+// Reduce silences the values that are not compatible with the given evidence
+func (f *Factor) Reduce(e map[int]int) *Factor {
+	panic("factor: not implemented")
+}
+
+// TimesNew creates a new factor h = f * g
+// func (f *Factor) TimesNew(g *Factor) *Factor {
+// 	return f.operationNew(g, opMul)
+// }
+// operationNew applies given operation resulting in new factor h = f op g
+// func (f *Factor) operationNew(g *Factor, op func(a, b float64) float64) *Factor {
+// 	if f.vs.Equal(g.vs) {
+// 		return f.Copy().operationEq(g, op)
+// 	}
+// 	return f.Copy().operationTr(f, g, op)
+// }
+// // MarginalizeNew returns a new factor summing out the variables not given
+// func (f *Factor) MarginalizeNew(xs ...*vars.Var) *Factor {
+// 	panic("factor: not implemented")
+// }
+// SumOutNew returns a new factor with the given variables summed out
+// func (f *Factor) SumOutNew(xs ...*vars.Var) *Factor {
+// 	return f.Copy().SumOut(xs...)
+// }
 // SumOutID sums out the variables given by id
 // func (f *Factor) SumOutID(ids ...int) *Factor {
 // 	return f.SumOut(f.vs.IntersecID(ids...)...)
@@ -184,18 +215,3 @@ func (f *Factor) SumOutNew(xs ...*vars.Var) *Factor {
 // func (f *Factor) SumOutIDNew(ids ...int) *Factor {
 // 	return f.SumOutNew(f.vs.IntersecID(ids...)...)
 // }
-
-// Marginalize sums out the variables not given
-func (f *Factor) Marginalize(xs ...*vars.Var) *Factor {
-	panic("factor: not implemented")
-}
-
-// MarginalizeNew returns a new factor summing out the variables not given
-func (f *Factor) MarginalizeNew(xs ...*vars.Var) *Factor {
-	panic("factor: not implemented")
-}
-
-// Reduce silences the values that are not compatible with the given evidence
-func (f *Factor) Reduce(e map[int]int) *Factor {
-	panic("factor: not implemented")
-}
