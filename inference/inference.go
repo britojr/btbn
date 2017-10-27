@@ -10,37 +10,35 @@ import (
 // InfAlg defines an inference algorithm
 type InfAlg interface {
 	Run(dataset.Evidence) float64
-	CalibPotList() []*factor.Factor
-	SetOrigPotList([]*factor.Factor)
-	OrigPotList() []*factor.Factor
+	CTNodes() []*model.CTNode
 	SetModelParms(m model.Model) model.Model
+	CalibPotential(nd *model.CTNode) *factor.Factor
 }
 
 type cTCalib struct {
-	ct                                *model.CTree
-	size                              int
-	initPot, calibPot, calibPotSepSet []*factor.Factor
+	ct                *model.CTree
+	size              int
+	initPot, calibPot map[*model.CTNode]*factor.Factor
 
 	// auxiliar for message passing, send to parent and receive from parent
-	send, receive []*factor.Factor
+	send, receive map[*model.CTNode]*factor.Factor
 	// axiliar to reduce (memoize) number of factor multiplications
-	prev, post [][]*factor.Factor
+	prev, post map[*model.CTNode][]*factor.Factor
 }
 
 // NewCTreeCalibration creates a new clique tree calibration runner
 func NewCTreeCalibration(ct *model.CTree) InfAlg {
 	c := new(cTCalib)
 	c.ct = ct
-	c.size = ct.NCliques()
+	c.size = ct.Len()
 
 	// initialize slices to be used on calibration
-	c.initPot = make([]*factor.Factor, c.size)
-	c.calibPot = make([]*factor.Factor, c.size)
-	c.calibPotSepSet = make([]*factor.Factor, c.size)
-	c.send = make([]*factor.Factor, c.size)
-	c.receive = make([]*factor.Factor, c.size)
-	c.prev = make([][]*factor.Factor, c.size)
-	c.post = make([][]*factor.Factor, c.size)
+	c.initPot = make(map[*model.CTNode]*factor.Factor)
+	c.calibPot = make(map[*model.CTNode]*factor.Factor)
+	c.send = make(map[*model.CTNode]*factor.Factor)
+	c.receive = make(map[*model.CTNode]*factor.Factor)
+	c.prev = make(map[*model.CTNode][]*factor.Factor)
+	c.post = make(map[*model.CTNode][]*factor.Factor)
 	return c
 }
 
@@ -49,19 +47,14 @@ func (c *cTCalib) SetModelParms(m model.Model) model.Model {
 	panic("inference: not implemented")
 }
 
-// OrigPotList returns reference for ctree original parameters
-func (c *cTCalib) OrigPotList() []*factor.Factor {
-	return c.ct.Potentials()
+// Nodes returns reference for ctree nodes
+func (c *cTCalib) CTNodes() []*model.CTNode {
+	return c.ct.Nodes()
 }
 
-// SetOrigPotList updates internat ctree parameters
-func (c *cTCalib) SetOrigPotList(ps []*factor.Factor) {
-	c.ct.SetPotentials(ps)
-}
-
-// CalibPotList returns calibrated potentials
-func (c *cTCalib) CalibPotList() []*factor.Factor {
-	return c.calibPot
+// CalibPotential returns calibrated potential of a node
+func (c *cTCalib) CalibPotential(nd *model.CTNode) *factor.Factor {
+	return c.calibPot[nd]
 }
 
 func (c *cTCalib) Run(e dataset.Evidence) float64 {
@@ -69,14 +62,14 @@ func (c *cTCalib) Run(e dataset.Evidence) float64 {
 	c.upDownCalibration()
 	// after applying evidence and calibratin
 	// the sum of any potential is probability of evidence
-	return floats.Sum(c.calibPot[0].Values())
+	return floats.Sum(c.calibPot[c.ct.Root()].Values())
 }
 
 // applyEvidence initialize the potentials with a copy of the original potentials
 // applyed the given evidence
 func (c *cTCalib) applyEvidence(e dataset.Evidence) {
-	for i, p := range c.ct.Potentials() {
-		c.initPot[i] = p.Copy().Reduce(e)
+	for _, nd := range c.ct.Nodes() {
+		c.initPot[nd] = nd.Potential().Copy().Reduce(e)
 	}
 }
 
@@ -84,77 +77,64 @@ func (c *cTCalib) applyEvidence(e dataset.Evidence) {
 // by the end, every node should have the joint distribution of its respective clique variables
 func (c *cTCalib) upDownCalibration() {
 	// -------------------------------------------------------------------------
-	// send[i] contains the message the ith node sends up to its parent
-	// receive[i] contains the message the ith node receives from his parent
+	// send[nd] contains the message the node nd sends up to its parent
+	// receive[nd] contains the message the node nd receives from his parent
 	// -------------------------------------------------------------------------
-	// post[i][j] contains the product of every message that node i received
-	// from its j+1 children to the last children
-	// prev[i][j] contains the product of node i initial potential and
-	// every message that node i received from its fist children to the j-1 children
-	// So the message to be sent from i to j will be the product of prev and post
+	// post[nd][j] contains the product of every message that node nd
+	// received from its (j+1)th child up to the last child
+	// prev[nd][j] contains the product of node nd initial potential and
+	// every message that node nd received from its fist child to the (j-1)th child
+	// So the message to be sent from node nd to its jth chilnd
+	// will be the product of prev[nd][j] and post[nd][j]
 	// -------------------------------------------------------------------------
 
-	root := c.ct.RootID()
-	c.upwardmessage(root, -1)
-	c.downwardmessage(-1, root)
+	root := c.ct.Root()
+	c.upwardmessage(root, nil)
+	c.downwardmessage(nil, root)
 }
 
-func (c *cTCalib) upwardmessage(v, pa int) {
-	neighbors := c.ct.Neighbors(v)
-	c.prev[v] = make([]*factor.Factor, 1, len(neighbors)+1)
+func (c *cTCalib) upwardmessage(v, pa *model.CTNode) {
+	children := v.Children()
+	c.prev[v] = make([]*factor.Factor, len(children)+1)
 	c.prev[v][0] = c.initPot[v]
-	for _, ne := range neighbors {
-		if ne != pa {
-			c.upwardmessage(ne, v)
-			c.prev[v] = append(c.prev[v], c.send[ne].TimesNew(c.prev[v][len(c.prev[v])-1]))
-		}
+	for i, ch := range children {
+		c.upwardmessage(ch, v)
+		c.prev[v][i+1] = c.send[ch].TimesNew(c.prev[v][i])
 	}
-	if pa != -1 {
-		c.send[v] = c.prev[v][len(c.prev[v])-1].SumOutIDNew(c.ct.VarIn(v)...)
+	if pa != nil {
+		c.send[v] = c.prev[v][len(c.prev[v])-1].MarginalizeNew(pa.Variables()...)
 	}
 }
 
-func (c *cTCalib) downwardmessage(pa, v int) {
-	neighbors := c.ct.Neighbors(v)
+func (c *cTCalib) downwardmessage(pa, v *model.CTNode) {
+	children := v.Children()
 	c.calibPot[v] = c.prev[v][len(c.prev[v])-1]
-	n := len(neighbors)
-	if pa != -1 {
-		c.calibPot[v].Times(c.receive[v])
-		n--
-		// calculate calibrated sepset
-		c.calibPotSepSet[v] = c.calibPot[v].SumOutIDNew(c.ct.VarIn(v)...)
+	if pa != nil {
+		c.calibPot[v] = c.calibPot[v].TimesNew(c.receive[v])
 	}
-	if len(neighbors) == 1 && pa != -1 {
+	// if v is a leaf, nothing more to do
+	if len(children) == 0 {
 		return
 	}
 
-	c.post[v] = make([]*factor.Factor, n)
+	c.post[v] = make([]*factor.Factor, len(children))
 	i := len(c.post[v]) - 1
 	c.post[v][i] = c.receive[v]
 	i--
-	for k := len(neighbors) - 1; k >= 0 && i >= 0; k-- {
-		ch := neighbors[k]
-		if ch == pa {
-			continue
-		}
+	for ; i >= 0; i-- {
+		ch := children[i+1]
 		c.post[v][i] = c.send[ch]
 		if c.post[v][i+1] != nil {
-			c.post[v][i].Times(c.post[v][i+1])
+			c.post[v][i] = c.post[v][i].TimesNew(c.post[v][i+1])
 		}
-		i--
 	}
 
-	k := 0
-	for _, ch := range neighbors {
-		if ch == pa {
-			continue
+	for i, ch := range children {
+		msg := c.prev[v][i].Copy()
+		if c.post[v][i] != nil {
+			msg.Times(c.post[v][i])
 		}
-		msg := c.prev[v][k].Copy()
-		if c.post[v][k] != nil {
-			msg.Times(c.post[v][k])
-		}
-		c.receive[ch] = msg.SumOutID(c.ct.VarOut(ch)...)
+		c.receive[ch] = msg.Marginalize(ch.Variables()...)
 		c.downwardmessage(v, ch)
-		k++
 	}
 }

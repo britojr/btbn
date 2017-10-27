@@ -60,6 +60,12 @@ func (f *Factor) Values() []float64 {
 	return f.values
 }
 
+// Variables return reference for factor variables
+func (f *Factor) Variables() vars.VarList {
+	// TODO: check if this is really necessary
+	return f.vs
+}
+
 // RandomDistribute sets values with a random distribution
 func (f *Factor) RandomDistribute(xs ...*vars.Var) *Factor {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -170,13 +176,23 @@ func (f *Factor) SumOutNew(xs ...*vars.Var) *Factor {
 }
 
 // SumOutID sums out the variables given by id
-func (f *Factor) SumOutID(ids ...int) *Factor {
-	return f.SumOut(f.vs.IntersecID(ids...)...)
+// func (f *Factor) SumOutID(ids ...int) *Factor {
+// 	return f.SumOut(f.vs.IntersecID(ids...)...)
+// }
+//
+// // SumOutIDNew returns a new factor with the given variables summed out
+// func (f *Factor) SumOutIDNew(ids ...int) *Factor {
+// 	return f.SumOutNew(f.vs.IntersecID(ids...)...)
+// }
+
+// Marginalize sums out the variables not given
+func (f *Factor) Marginalize(xs ...*vars.Var) *Factor {
+	panic("factor: not implemented")
 }
 
-// SumOutIDNew returns a new factor with the given variables summed out
-func (f *Factor) SumOutIDNew(ids ...int) *Factor {
-	return f.SumOutNew(f.vs.IntersecID(ids...)...)
+// MarginalizeNew returns a new factor summing out the variables not given
+func (f *Factor) MarginalizeNew(xs ...*vars.Var) *Factor {
+	panic("factor: not implemented")
 }
 
 // Reduce silences the values that are not compatible with the given evidence

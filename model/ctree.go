@@ -1,34 +1,66 @@
 package model
 
-import "github.com/britojr/btbn/factor"
+import (
+	"github.com/britojr/btbn/factor"
+	"github.com/britojr/btbn/vars"
+)
 
 // CTree defines a structure in clique tree format
 // a CTree is a way to group the potentials of the model according to its cliques
 // the potentials assossiated with each clique are pointers to the same factors present in the model
-type CTree struct{}
-
-func (c *CTree) NCliques() int {
-	panic("ctree: not implemented")
-}
-func (c *CTree) RootID() int {
-	panic("ctree: not implemented")
-}
-func (c *CTree) Neighbors(v int) []int {
-	panic("ctree: not implemented")
-}
-func (c *CTree) VarIn(v int) []int {
-	panic("ctree: not implemented")
-}
-func (c *CTree) VarOut(v int) []int {
-	panic("ctree: not implemented")
+type CTree struct {
+	nodes []*CTNode
+	root  *CTNode
 }
 
-func (c *CTree) Potentials() []*factor.Factor {
-	panic("ctree: not implemented")
+// CTNode defines a clique tree node
+type CTNode struct {
+	children []*CTNode
+	parent   *CTNode
+	pot      *factor.Factor
 }
-func (c *CTree) SetPotentials([]*factor.Factor) {
-	panic("ctree: not implemented")
-}
+
+// ToCTree creates a clique tree from the model
 func ToCTree(m Model) *CTree {
 	panic("ctree: not implemented")
+}
+
+// Len return number of nodes in the tree
+func (c *CTree) Len() int {
+	return len(c.nodes)
+}
+
+// Root return root node
+func (c *CTree) Root() *CTNode {
+	return c.root
+}
+
+// Nodes return list of nodes
+func (c *CTree) Nodes() []*CTNode {
+	return c.nodes
+}
+
+// Variables return node variables
+func (cn *CTNode) Variables() vars.VarList {
+	return cn.pot.Variables()
+}
+
+// Potential return node potential
+func (cn *CTNode) Potential() *factor.Factor {
+	return cn.pot
+}
+
+// SetPotential set node potential
+func (cn *CTNode) SetPotential(p *factor.Factor) {
+	cn.pot = p
+}
+
+// Children return node children
+func (cn *CTNode) Children() []*CTNode {
+	return cn.children
+}
+
+// Parent return node parent
+func (cn *CTNode) Parent() *CTNode {
+	return cn.parent
 }

@@ -67,8 +67,8 @@ func (e *emAlg) SetProperties(props map[string]string) {
 func (e *emAlg) start(infalg inference.InfAlg, evset dataset.EvidenceSet) {
 	// TODO: add a non-trivial em (re)start policy
 	// for now, just randomly starts
-	for _, p := range infalg.OrigPotList() {
-		p.RandomDistribute()
+	for _, nd := range infalg.CTNodes() {
+		nd.Potential().RandomDistribute()
 	}
 }
 
@@ -96,7 +96,7 @@ func (e *emAlg) Run(m model.Model, evset dataset.EvidenceSet) (model.Model, floa
 // returning the loglikelihood of the model with new parameters
 func (e *emAlg) runStep(infalg inference.InfAlg, evset dataset.EvidenceSet) float64 {
 	// copy of parameters to hold the sufficient statistics
-	count := make([]*factor.Factor, len(infalg.CalibPotList()))
+	count := make(map[*model.CTNode]*factor.Factor)
 	var ll float64
 	// expecttation step
 	for _, evid := range evset.Observations() {
@@ -105,22 +105,21 @@ func (e *emAlg) runStep(infalg inference.InfAlg, evset dataset.EvidenceSet) floa
 		ll += math.Log(evLkhood)
 
 		// acumulate sufficient statistics in the copy of parameters
-		ps := infalg.CalibPotList()
-		for i, p := range ps {
-			if count[i] == nil {
-				count[i] = p.Copy()
+		for _, nd := range infalg.CTNodes() {
+			if p, ok := count[nd]; ok {
+				p.Plus(infalg.CalibPotential(nd))
 			} else {
-				count[i].Plus(p)
+				count[nd] = infalg.CalibPotential(nd).Copy()
 			}
 		}
 	}
 
 	// maximization step
-	for i := range count {
-		count[i].Normalize()
-	}
 	// updates parameters
-	infalg.SetOrigPotList(count)
+	for nd, p := range count {
+		p.Normalize()
+		nd.SetPotential(p)
+	}
 
 	// updates loglikelihood of optimized model
 	// m.SetLoglikelihood(ds, ll)
