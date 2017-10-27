@@ -9,8 +9,9 @@ import (
 // a CTree is a way to group the potentials of the model according to its cliques
 // the potentials assossiated with each clique are pointers to the same factors present in the model
 type CTree struct {
-	nodes []*CTNode
-	root  *CTNode
+	nodes  []*CTNode
+	root   *CTNode
+	family map[*vars.Var]*CTNode
 }
 
 // CTNode defines a clique tree node
@@ -18,11 +19,6 @@ type CTNode struct {
 	children []*CTNode
 	parent   *CTNode
 	pot      *factor.Factor
-}
-
-// ToCTree creates a clique tree from the model
-func ToCTree(m Model) *CTree {
-	panic("ctree: not implemented")
 }
 
 // Len return number of nodes in the tree
@@ -38,6 +34,11 @@ func (c *CTree) Root() *CTNode {
 // Nodes return list of nodes
 func (c *CTree) Nodes() []*CTNode {
 	return c.nodes
+}
+
+// Families return map of var to family
+func (c *CTree) Families() map[*vars.Var]*CTNode {
+	return c.family
 }
 
 // Variables return node variables

@@ -11,12 +11,13 @@ import (
 type InfAlg interface {
 	Run(dataset.Evidence) float64
 	CTNodes() []*model.CTNode
-	SetModelParms(m model.Model) model.Model
 	CalibPotential(nd *model.CTNode) *factor.Factor
+	UpdatedModel() *model.BNet
 }
 
 type cTCalib struct {
 	ct                *model.CTree
+	bn                *model.BNet
 	size              int
 	initPot, calibPot map[*model.CTNode]*factor.Factor
 
@@ -27,8 +28,10 @@ type cTCalib struct {
 }
 
 // NewCTreeCalibration creates a new clique tree calibration runner
-func NewCTreeCalibration(ct *model.CTree) InfAlg {
+func NewCTreeCalibration(bn *model.BNet) InfAlg {
 	c := new(cTCalib)
+	c.bn = bn
+	ct := bn.ToCTree()
 	c.ct = ct
 	c.size = ct.Len()
 
@@ -42,9 +45,17 @@ func NewCTreeCalibration(ct *model.CTree) InfAlg {
 	return c
 }
 
-// SetModelParms updates model's parameters based on the internal ctree
-func (c *cTCalib) SetModelParms(m model.Model) model.Model {
-	panic("inference: not implemented")
+// UpdatedModel updates model's parameters based on the internal ctree
+func (c *cTCalib) UpdatedModel() *model.BNet {
+	// TODO: check if it needs to calibrate without evidence first
+	// c.Run(map[int]int{})
+	for v, nd := range c.ct.Families() {
+		bnd := c.bn.Node(v)
+		p := nd.Potential().Copy().Marginalize(bnd.Potential().Variables()...)
+		p.Normalize(bnd.Variable())
+		bnd.SetPotential(p)
+	}
+	return c.bn
 }
 
 // Nodes returns reference for ctree nodes
