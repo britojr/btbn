@@ -185,7 +185,34 @@ func (f *Factor) Marginalize(xs ...*vars.Var) *Factor {
 
 // Reduce silences the values that are not compatible with the given evidence
 func (f *Factor) Reduce(e map[int]int) *Factor {
-	panic("factor: not implemented")
+	step, ind := 1, 0
+	var rvs []*vars.Var
+	for _, v := range f.vs {
+		if a, ok := e[v.ID()]; ok {
+			ind += a * step
+			step *= v.NState()
+			rvs = append(rvs, v)
+		}
+	}
+	if len(rvs) == 0 {
+		return f
+	}
+	if len(rvs) == len(f.vs) {
+		for i := range f.values {
+			if i != ind {
+				f.values[i] = 0
+			}
+		}
+		return f
+	}
+	ixr := vars.NewIndexFor(rvs, f.vs)
+	for i := range f.values {
+		if ixr.I() != ind {
+			f.values[i] = 0
+		}
+		ixr.Next()
+	}
+	return f
 }
 
 // TimesNew creates a new factor h = f * g

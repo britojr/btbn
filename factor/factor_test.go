@@ -276,6 +276,45 @@ func TestRandom(t *testing.T) {
 	}
 }
 
+func TestReduce(t *testing.T) {
+	cases := []struct {
+		f      *Factor
+		e      map[int]int
+		result []float64
+	}{{
+		New(vars.NewList([]int{0, 1}, []int{2, 2})...).SetValues(
+			[]float64{10, 20, 30, 40},
+		),
+		map[int]int{},
+		[]float64{10, 20, 30, 40},
+	}, {
+		New(vars.NewList([]int{0, 1}, []int{2, 2})...).SetValues(
+			[]float64{10, 20, 30, 40},
+		),
+		map[int]int{1: 0},
+		[]float64{10, 20, 0, 0},
+	}, {
+		New(vars.NewList([]int{0, 1}, []int{2, 2})...).SetValues(
+			[]float64{10, 20, 30, 40},
+		),
+		map[int]int{0: 1, 1: 0, 2: 1},
+		[]float64{0, 20, 0, 0},
+	}, {
+		New(vars.NewList([]int{0, 1, 2}, []int{3, 2, 2})...).SetValues(
+			[]float64{10, 3, 7, 2, 3, 5, 4, 4, 12, 6, 2, 2},
+		),
+		map[int]int{0: 1, 2: 1, 4: 1},
+		[]float64{0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 2, 0},
+	}}
+	for _, tt := range cases {
+		got := tt.f
+		got.Reduce(tt.e)
+		if !reflect.DeepEqual(tt.result, got.values) {
+			t.Errorf("wrong result %v != %v", tt.result, got.values)
+		}
+	}
+}
+
 // func TestNew(t *testing.T) {
 // 	cases:= []struct{
 //
