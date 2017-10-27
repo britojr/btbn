@@ -214,32 +214,3 @@ func (f *Factor) Reduce(e map[int]int) *Factor {
 	}
 	return f
 }
-
-// TimesNew creates a new factor h = f * g
-// func (f *Factor) TimesNew(g *Factor) *Factor {
-// 	return f.operationNew(g, opMul)
-// }
-// operationNew applies given operation resulting in new factor h = f op g
-// func (f *Factor) operationNew(g *Factor, op func(a, b float64) float64) *Factor {
-// 	if f.vs.Equal(g.vs) {
-// 		return f.Copy().operationEq(g, op)
-// 	}
-// 	return f.Copy().operationTr(f, g, op)
-// }
-// // MarginalizeNew returns a new factor summing out the variables not given
-// func (f *Factor) MarginalizeNew(xs ...*vars.Var) *Factor {
-// 	panic("factor: not implemented")
-// }
-// SumOutNew returns a new factor with the given variables summed out
-// func (f *Factor) SumOutNew(xs ...*vars.Var) *Factor {
-// 	return f.Copy().SumOut(xs...)
-// }
-// SumOutID sums out the variables given by id
-// func (f *Factor) SumOutID(ids ...int) *Factor {
-// 	return f.SumOut(f.vs.IntersecID(ids...)...)
-// }
-//
-// // SumOutIDNew returns a new factor with the given variables summed out
-// func (f *Factor) SumOutIDNew(ids ...int) *Factor {
-// 	return f.SumOutNew(f.vs.IntersecID(ids...)...)
-// }
