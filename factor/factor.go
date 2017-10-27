@@ -128,9 +128,9 @@ func (f *Factor) Normalize(xs ...*vars.Var) *Factor {
 		return f.normalizeAll()
 	}
 	condVars := f.vs.Diff(xs)
-	// if len(condVars) == 0 {
-	// 	return f.normalizeAll()
-	// }
+	if len(condVars) == 0 {
+		return f.normalizeAll()
+	}
 	ixf := vars.NewIndexFor(condVars, f.vs)
 	sums := make([]float64, condVars.NStates())
 	for _, v := range f.values {

@@ -243,6 +243,18 @@ func TestNormalize(t *testing.T) {
 		),
 		nil,
 		[]float64{.1, .2, .3, .4},
+	}, {
+		New(vars.NewList([]int{0, 1}, []int{2, 2})...).SetValues(
+			[]float64{.1, .2, .3, .4},
+		),
+		vars.NewList([]int{0, 1}, []int{2, 2}),
+		[]float64{.1, .2, .3, .4},
+	}, {
+		New(vars.NewList([]int{0, 1}, []int{2, 2})...).SetValues(
+			[]float64{10, 20, 30, 40},
+		),
+		vars.NewList([]int{0, 1}, []int{2, 2}),
+		[]float64{.1, .2, .3, .4},
 	}}
 	for _, tt := range cases {
 		got := tt.f
