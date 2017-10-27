@@ -9,6 +9,7 @@ import (
 )
 
 // Factor defines a function that maps a joint of categorical variables to float values
+// every factor operation, if not explicitly stated otherwise, modifies the given factor
 type Factor struct {
 	values []float64
 	vs     vars.VarList

@@ -99,18 +99,18 @@ func (c *cTCalib) upwardmessage(v, pa *model.CTNode) {
 	c.prev[v][0] = c.initPot[v]
 	for i, ch := range children {
 		c.upwardmessage(ch, v)
-		c.prev[v][i+1] = c.send[ch].TimesNew(c.prev[v][i])
+		c.prev[v][i+1] = c.send[ch].Copy().Times(c.prev[v][i])
 	}
 	if pa != nil {
-		c.send[v] = c.prev[v][len(c.prev[v])-1].MarginalizeNew(pa.Variables()...)
+		c.send[v] = c.prev[v][len(c.prev[v])-1].Copy().Marginalize(pa.Variables()...)
 	}
 }
 
 func (c *cTCalib) downwardmessage(pa, v *model.CTNode) {
 	children := v.Children()
-	c.calibPot[v] = c.prev[v][len(c.prev[v])-1]
+	c.calibPot[v] = c.prev[v][len(c.prev[v])-1].Copy()
 	if pa != nil {
-		c.calibPot[v] = c.calibPot[v].TimesNew(c.receive[v])
+		c.calibPot[v].Times(c.receive[v])
 	}
 	// if v is a leaf, nothing more to do
 	if len(children) == 0 {
@@ -123,9 +123,9 @@ func (c *cTCalib) downwardmessage(pa, v *model.CTNode) {
 	i--
 	for ; i >= 0; i-- {
 		ch := children[i+1]
-		c.post[v][i] = c.send[ch]
+		c.post[v][i] = c.send[ch].Copy()
 		if c.post[v][i+1] != nil {
-			c.post[v][i] = c.post[v][i].TimesNew(c.post[v][i+1])
+			c.post[v][i].Times(c.post[v][i+1])
 		}
 	}
 
