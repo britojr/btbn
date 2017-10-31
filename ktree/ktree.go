@@ -73,6 +73,16 @@ func UniformSample(n, k int) *Ktree {
 	return FromCode(C)
 }
 
+// UniformSampleAdj uniformly samples a ktree in the form of cliques and children matrix
+func UniformSampleAdj(n, k int) (children, clqs [][]int) {
+	C, err := generator.RandomCode(n, k)
+	errchk.Check(err, "")
+	T, iphi, err := codec.DecodeCharTree(C)
+	errchk.Check(err, "")
+	children, clqs, _, _ = decodeCharTree(T, iphi, n, k)
+	return
+}
+
 // FromCode creates a ktree from a given code
 func FromCode(C *codec.Code) *Ktree {
 	// Decode a characteristic tree
@@ -100,6 +110,23 @@ func (tk *Ktree) AllCliques() (cl [][]int) {
 	}
 	return
 }
+
+// CliquesParent returns a list of all cliques and parent array
+// func (tk *Ktree) CliquesParent() (cl [][]int, pa []int) {
+// 	queue := []*Ktree{tk}
+// 	i := 0
+// 	pa = append(pa, -1)
+// 	for len(queue) > i {
+// 		r := queue[0]
+// 		i++
+// 		cl = append(cl, r.Variables())
+// 		for _, ch := range r.Children() {
+// 			queue = append(queue, ch)
+// 			pa = append(pa, i)
+// 		}
+// 	}
+// 	return
+// }
 
 func decodeCharTree(T *characteristic.Tree, iphi []int, n, k int) (
 	[][]int, [][]int, []int, []int,
