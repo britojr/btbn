@@ -62,12 +62,15 @@ func ComputeMutInf(fname string) *MutInfo {
 	f := ioutl.OpenFile(fname)
 	defer f.Close()
 	df := dataframe.ReadCSV(bufio.NewReader(f))
+	return ComputeMutInfDF(df)
+}
 
+// ComputeMutInfDF computes mutual information from a dataframe
+func ComputeMutInfDF(df dataframe.DataFrame) *MutInfo {
 	mat := make([][]float64, df.Ncol())
 	for i := range mat {
 		mat[i] = make([]float64, i+1)
 	}
-
 	// compute empiric individual entropy for each variable and store it in the diagonal
 	for i := 0; i < df.Ncol(); i++ {
 		mat[i][i] = stat.Entropy(dfext.Counts(df.Select([]int{i}), true))
