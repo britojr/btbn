@@ -73,7 +73,7 @@ func ComputeMutInfDF(df dataframe.DataFrame) *MutInfo {
 	}
 	// compute empiric individual entropy for each variable and store it in the diagonal
 	for i := 0; i < df.Ncol(); i++ {
-		mat[i][i] = stat.Entropy(dfext.Counts(df.Select([]int{i}), true))
+		mat[i][i] = stat.Entropy(dfext.Counts(df.Select(i), true))
 	}
 	// compute pairwise mutual information for each pair and store in matrix lower triangle
 	for i := 0; i < df.Ncol(); i++ {
