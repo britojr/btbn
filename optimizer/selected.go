@@ -132,7 +132,7 @@ func (s *SelectSampleSearch) computeNodeIScore(
 			}
 		}
 	} else {
-		// if got here, it is the root node
+		// if got here, it is the root node, then initialize the restriction set
 		for i, u := range nd.Variables() {
 			restric.Set(u)
 			for _, v := range nd.Variables()[i+1:] {
@@ -140,12 +140,6 @@ func (s *SelectSampleSearch) computeNodeIScore(
 			}
 		}
 	}
-	// TODO: remove
-	// aux := append([]int(nil), nd.Variables()...)
-	// sort.Ints(aux)
-	// if !reflect.DeepEqual(aux, restric.DumpAsInts()) {
-	// 	panic("wrong clique")
-	// }
 	for _, v := range nd.Variables() {
 		_, newScore := s.scoreRanker.BestIn(v, restric)
 		if partialScores[v] == 0 || newScore > partialScores[v] {
