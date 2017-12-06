@@ -78,7 +78,9 @@ func ComputeMutInfDF(df dataframe.DataFrame) *MutInfo {
 	// compute pairwise mutual information for each pair and store in matrix lower triangle
 	for i := 0; i < df.Ncol(); i++ {
 		for j := 0; j < i; j++ {
-			mat[i][j] = stat.Entropy(dfext.Counts(df.Select([]int{i, j}), true))
+			// pairwise mutual information: I(i,j) = H(i) + H(j) - H(i,j)
+			jointEntropy := stat.Entropy(dfext.Counts(df.Select([]int{i, j}), true))
+			mat[i][j] = mat[i][i] + mat[j][j] - jointEntropy
 		}
 	}
 	return &MutInfo{mat}

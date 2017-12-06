@@ -8,7 +8,7 @@ import (
 	"github.com/britojr/utl/ioutl"
 )
 
-const tol = 1e-14
+const tol = 1e-9
 
 func TestComputeFromDataset(t *testing.T) {
 	cases := []struct {
