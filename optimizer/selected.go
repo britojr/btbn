@@ -16,8 +16,7 @@ import (
 	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/errchk"
 	"github.com/britojr/utl/stats"
-
-	"gonum.org/v1/gonum/floats"
+	"github.com/gonum/floats"
 )
 
 // SelectSampleSearch implements the select sampling strategy
@@ -116,31 +115,50 @@ func (s *SelectSampleSearch) computeIScore(tk *ktree.Ktree) float64 {
 	var mi float64
 	partialScores := make([]float64, s.nv)
 	restric := varset.New(s.nv)
-	for _, v := range tk.Variables() {
-		restric.Set(v)
-	}
-	queue := []*ktree.Ktree{tk}
-	for len(queue) > 0 {
-		r := queue[0]
-		u := r.VarIn()
-		if u >= 0 {
-			restric.Set(u)
-			restric.Clear(r.VarOut())
-		} else {
-			u = r.Variables()[0]
-		}
-		for _, v := range r.Variables() {
-			if v != u {
-				mi += s.mutInfo.Get(u, v)
-			}
-			_, newScore := s.scoreRanker.BestIn(v, restric)
-			if partialScores[v] == 0 || newScore > partialScores[v] {
-				partialScores[v] = newScore
-			}
-		}
-		queue = append(queue[1:], r.Children()...)
-	}
+	s.computeNodeIScore(tk, restric, partialScores, &mi)
 	return mi / math.Abs(floats.Sum(partialScores))
+}
+
+func (s *SelectSampleSearch) computeNodeIScore(
+	nd *ktree.Ktree, restric varset.Varset, partialScores []float64, mi *float64,
+) {
+	if nd.VarIn() >= 0 {
+		u := nd.VarIn()
+		restric.Set(u)
+		restric.Clear(nd.VarOut())
+		for _, v := range nd.Variables() {
+			if v != u {
+				*mi += s.mutInfo.Get(u, v)
+			}
+		}
+	} else {
+		// if got here, it is the root node
+		for i, u := range nd.Variables() {
+			restric.Set(u)
+			for _, v := range nd.Variables()[i+1:] {
+				*mi += s.mutInfo.Get(u, v)
+			}
+		}
+	}
+	// TODO: remove
+	// aux := append([]int(nil), nd.Variables()...)
+	// sort.Ints(aux)
+	// if !reflect.DeepEqual(aux, restric.DumpAsInts()) {
+	// 	panic("wrong clique")
+	// }
+	for _, v := range nd.Variables() {
+		_, newScore := s.scoreRanker.BestIn(v, restric)
+		if partialScores[v] == 0 || newScore > partialScores[v] {
+			partialScores[v] = newScore
+		}
+	}
+	for _, ch := range nd.Children() {
+		s.computeNodeIScore(ch, restric, partialScores, mi)
+	}
+	if nd.VarOut() >= 0 {
+		restric.Set(nd.VarOut())
+		restric.Clear(nd.VarIn())
+	}
 }
 
 // acceptCode stochastically accepts a Dandelion code
