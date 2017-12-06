@@ -13,7 +13,7 @@ func Counts(df dataframe.DataFrame, normalize bool) []float64 {
 	// TODO: improve this with functionalities like like pandas:
 	// Series.value_counts(normalize=False, sort=True, ascending=False, bins=None, dropna=True)
 	c := make(map[string]float64)
-	for _, v := range df.Records() {
+	for _, v := range df.Records()[1:] {
 		c[strings.Join(v, ",")]++
 	}
 	vs := make([]float64, 0, len(c))
