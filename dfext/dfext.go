@@ -1,4 +1,4 @@
-// Package dfext provides some extentions to dataframe package
+// Package dfext provides some extensions to dataframe package
 package dfext
 
 import (
