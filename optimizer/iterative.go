@@ -100,9 +100,14 @@ func (s *IterativeSearch) sampleOrder() []int {
 			rand.Shuffle(len(ord), func(i, j int) {
 				ord[i], ord[j] = ord[j], ord[i]
 			})
+			if len(ord) != len(s.subSet) {
+				log.Panicf("different size\n%v\n%v\n", s.subSet, ord)
+			}
 			key := fmt.Sprint(ord[s.tw+1:])
 			if _, ok := s.prevCliques[key]; !ok {
 				s.prevCliques[key] = struct{}{}
+				fmt.Printf("Ord: %v, k: %v, key: %v\n", ord, s.tw, key)
+				fmt.Println()
 				return ord
 			}
 		}
@@ -110,8 +115,9 @@ func (s *IterativeSearch) sampleOrder() []int {
 }
 
 func (s *IterativeSearch) SetVarsSubSet(subSet []int) {
-	s.subSet = subSet
+	s.subSet = append([]int(nil), subSet...)
 	s.prevCliques = make(map[string]struct{})
+	log.Printf("subset: %v\n", s.subSet)
 }
 
 func (s *IterativeSearch) getInitialDAG(vars []int) *bnstruct.BNStruct {
