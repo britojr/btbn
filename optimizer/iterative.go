@@ -20,6 +20,8 @@ type IterativeSearch struct {
 	searchVariation string              // search variation
 	prevCliques     map[string]struct{} // previously sampled initial cliques
 
+	subSet []int // subset of variables
+
 	// to use on astar
 	order []int
 	hval  []float64
@@ -83,14 +85,34 @@ func (s *IterativeSearch) PrintParameters() {
 // rejecting repeated orders (k+1 to forward) that already occurred on previous samples
 func (s *IterativeSearch) sampleOrder() []int {
 	r := rand.New(rand.NewSource(seed()))
-	for {
-		ord := r.Perm(s.nv)
-		key := fmt.Sprint(ord[s.tw+1:])
-		if _, ok := s.prevCliques[key]; !ok {
-			s.prevCliques[key] = struct{}{}
-			return ord
+	if len(s.subSet) == 0 {
+		for {
+			ord := r.Perm(s.nv)
+			key := fmt.Sprint(ord[s.tw+1:])
+			if _, ok := s.prevCliques[key]; !ok {
+				s.prevCliques[key] = struct{}{}
+				return ord
+			}
+		}
+	} else {
+		for {
+			ord := make([]int, len(s.subSet))
+			ordP := r.Perm(len(s.subSet))
+			for i, v := range ordP {
+				ord[i] = s.subSet[v]
+			}
+			key := fmt.Sprint(ord[s.tw+1:])
+			if _, ok := s.prevCliques[key]; !ok {
+				s.prevCliques[key] = struct{}{}
+				return ord
+			}
 		}
 	}
+}
+
+func (s *IterativeSearch) SetVarsSubSet(subSet []int) {
+	s.subSet = subSet
+	s.prevCliques = make(map[string]struct{})
 }
 
 func (s *IterativeSearch) getInitialDAG(vars []int) *bnstruct.BNStruct {
