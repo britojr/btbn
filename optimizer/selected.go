@@ -16,7 +16,7 @@ import (
 	"github.com/britojr/utl/conv"
 	"github.com/britojr/utl/errchk"
 	"github.com/britojr/utl/stats"
-	"github.com/gonum/floats"
+	"gonum.org/v1/gonum/floats"
 )
 
 // SelectSampleSearch implements the select sampling strategy
