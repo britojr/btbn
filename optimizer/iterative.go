@@ -96,11 +96,10 @@ func (s *IterativeSearch) sampleOrder() []int {
 		}
 	} else {
 		for {
-			ord := make([]int, len(s.subSet))
-			ordP := r.Perm(len(s.subSet))
-			for i, v := range ordP {
-				ord[i] = s.subSet[v]
-			}
+			ord := append([]int(nil), s.subSet...)
+			rand.Shuffle(len(ord), func(i, j int) {
+				ord[i], ord[j] = ord[j], ord[i]
+			})
 			key := fmt.Sprint(ord[s.tw+1:])
 			if _, ok := s.prevCliques[key]; !ok {
 				s.prevCliques[key] = struct{}{}
