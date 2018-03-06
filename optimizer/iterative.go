@@ -83,20 +83,20 @@ func (s *IterativeSearch) PrintParameters() {
 
 // sampleOrder samples a permutation of variables
 // rejecting repeated orders (k+1 to forward) that already occurred on previous samples
-func (s *IterativeSearch) sampleOrder() []int {
+func (s *IterativeSearch) sampleOrder() (ord []int) {
 	r := rand.New(rand.NewSource(seed()))
 	if len(s.subSet) == 0 {
 		for {
-			ord := r.Perm(s.nv)
+			ord = r.Perm(s.nv)
 			key := fmt.Sprint(ord[s.tw+1:])
 			if _, ok := s.prevCliques[key]; !ok {
 				s.prevCliques[key] = struct{}{}
-				return ord
+				return
 			}
 		}
 	} else {
+		ord = append([]int(nil), s.subSet...)
 		for {
-			ord := append([]int(nil), s.subSet...)
 			rand.Shuffle(len(ord), func(i, j int) {
 				ord[i], ord[j] = ord[j], ord[i]
 			})
@@ -106,16 +106,14 @@ func (s *IterativeSearch) sampleOrder() []int {
 			key := fmt.Sprint(ord[s.tw+1:])
 			if _, ok := s.prevCliques[key]; !ok {
 				s.prevCliques[key] = struct{}{}
-				fmt.Printf("Ord: %v, k: %v, key: %v\n", ord, s.tw, key)
-				fmt.Println()
-				return ord
+				return
 			}
 		}
 	}
 }
 
 func (s *IterativeSearch) SetVarsSubSet(subSet []int) {
-	s.subSet = append([]int(nil), subSet...)
+	s.subSet = subSet
 	s.prevCliques = make(map[string]struct{})
 	log.Printf("subset: %v\n", s.subSet)
 }
