@@ -21,7 +21,6 @@ type IterativeSearch struct {
 	prevCliques     map[string]struct{} // previously sampled initial cliques
 
 	subSet []int // subset of variables
-	ord    []int // last used order of variables
 
 	// to use on astar
 	order []int
@@ -43,6 +42,7 @@ func NewIterativeSearch(scoreRanker scr.Ranker) Optimizer {
 func (s *IterativeSearch) Search() *bnstruct.BNStruct {
 	ord := s.sampleOrder()
 	bn := s.getInitialDAG(ord[:s.tw+1])
+	bn.SetTopological(ord)
 	switch s.searchVariation {
 	case OpGreedy:
 		s.greedySearch(bn, ord)
@@ -51,7 +51,6 @@ func (s *IterativeSearch) Search() *bnstruct.BNStruct {
 	default:
 		log.Panicf("invalid search variation: '%v'", s.searchVariation)
 	}
-	s.ord = ord
 	return bn
 }
 
@@ -118,10 +117,6 @@ func (s *IterativeSearch) SetVarsSubSet(subSet []int) {
 	s.subSet = subSet
 	s.prevCliques = make(map[string]struct{})
 	log.Printf("subset: %v\n", s.subSet)
-}
-
-func (s *IterativeSearch) GetOrder() []int {
-	return s.ord
 }
 
 func (s *IterativeSearch) getInitialDAG(vars []int) *bnstruct.BNStruct {

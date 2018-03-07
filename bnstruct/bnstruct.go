@@ -12,6 +12,8 @@ type BNStruct struct {
 	totScore    float64
 	initialized int
 	nodes       []*node
+
+	topOrder []int // topological order
 }
 
 type node struct {
@@ -45,6 +47,16 @@ func (b *BNStruct) Score() float64 {
 		return math.Inf(-1)
 	}
 	return b.totScore
+}
+
+// Topological returns topological order
+func (b *BNStruct) Topological() []int {
+	return b.topOrder
+}
+
+// SetTopological sets topological order
+func (b *BNStruct) SetTopological(ord []int) {
+	b.topOrder = ord
 }
 
 // Size returns the number of variables in the network
