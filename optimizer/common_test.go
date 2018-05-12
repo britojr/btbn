@@ -22,7 +22,7 @@ func (r *fakeRanker) BestInLim(v int, restric varset.Varset, maxPa int) (varset.
 	ps := varset.New(0).SetInts(restric.DumpAsInts()[:maxPa])
 	return ps, r.ScoreOf(v, ps)
 }
-
+func (r *fakeRanker) SaveSubSet(fname string, vs []int) {}
 func (r *fakeRanker) ScoreOf(v int, parents varset.Varset) float64 {
 	c := 0
 	for _, u := range parents.DumpAsInts() {

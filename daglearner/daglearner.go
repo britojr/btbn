@@ -1,13 +1,22 @@
 package daglearner
 
 import (
+	"bufio"
+	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/britojr/btbn/bnstruct"
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
+	"github.com/britojr/utl/cmdsh"
+	"github.com/britojr/utl/conv"
+	"github.com/britojr/utl/errchk"
+	"github.com/britojr/utl/ioutl"
 )
 
 var seed = func() int64 {
@@ -16,12 +25,7 @@ var seed = func() int64 {
 
 // Approximated learns a dag approximatedly from a ktree
 func Approximated(tk *ktree.Ktree, ranker scr.Ranker) (bn *bnstruct.BNStruct) {
-	// Initialize the local scores for empty list of parents
-	bn = bnstruct.New(ranker.Size())
-	parents := varset.New(ranker.Size())
-	for x := 0; x < ranker.Size(); x++ {
-		bn.SetParents(x, parents, ranker.ScoreOf(x, parents))
-	}
+	bn = buildEmptyBN(ranker)
 
 	// Sample a partial order from the ktree
 	pOrders := samplePartialOrder(tk)
@@ -102,15 +106,55 @@ func shuffle(xs []int, r *rand.Rand) []int {
 	return shuf
 }
 
+func buildEmptyBN(ranker scr.Ranker) *bnstruct.BNStruct {
+	// Initialize the local scores for empty list of parents
+	bn := bnstruct.New(ranker.Size())
+	parents := varset.New(ranker.Size())
+	for x := 0; x < ranker.Size(); x++ {
+		bn.SetParents(x, parents, ranker.ScoreOf(x, parents))
+	}
+	return bn
+}
+
 // Exact learns an optimal dag from a ktree
-// TODO: need to replace this for an actual call to an exact method
 func Exact(tk *ktree.Ktree, ranker scr.Ranker) (bn *bnstruct.BNStruct) {
-	bn = Approximated(tk, ranker)
-	for i := 0; i < 50; i++ {
-		currBn := Approximated(tk, ranker)
-		if currBn.Better(bn) {
-			bn = currBn
-		}
+	f, err := ioutil.TempFile("", "gob-")
+	errchk.Check(err, "")
+	fname := filepath.Base(f.Name())
+	f.Close()
+	ranker.SaveSubSet(fname, tk.Variables())
+	_, err = cmdsh.Exec(fmt.Sprintf("gobnilp -f=pss %s", fname), 0)
+	errchk.Check(err, "")
+	solFile := strings.TrimSuffix(fname, filepath.Ext(fname)) + ".solution"
+	paLst, paScr := parseParentMat(solFile)
+
+	bn = buildEmptyBN(ranker)
+	for v, pa := range paLst {
+		paset := varset.New(ranker.Size())
+		paset.SetInts(pa)
+		bn.SetParents(v, paset, paScr[v])
 	}
 	return
+}
+
+func parseParentMat(fname string) (map[int][]int, map[int]float64) {
+	paLst := make(map[int][]int)
+	paScr := make(map[int]float64)
+	r := ioutl.OpenFile(fname)
+	defer r.Close()
+	scanner := bufio.NewScanner(r)
+	paSep := "<-"
+	for scanner.Scan() {
+		text := strings.Replace(scanner.Text(), ":", paSep, 1)
+		text = strings.Replace(text, ",", " ", -1)
+		line := strings.SplitN(text, paSep, 2)
+		if len(line) < 2 {
+			continue
+		}
+		vID := conv.Atoi(line[0])
+		fields := strings.Fields(line[1])
+		paLst[vID] = conv.Satoi(fields[:len(fields)-1])
+		paScr[vID] = conv.Atof(fields[len(fields)-1])
+	}
+	return paLst, paScr
 }

@@ -2,9 +2,13 @@ package scr
 
 import (
 	"fmt"
+	"log"
 	"sort"
+	"strings"
 
 	"github.com/britojr/btbn/varset"
+	"github.com/britojr/utl/conv"
+	"github.com/britojr/utl/ioutl"
 )
 
 // Ranker defines methods to find best score for a given variable
@@ -13,6 +17,7 @@ type Ranker interface {
 	BestInLim(v int, restric varset.Varset, maxPa int) (parents varset.Varset, localScore float64)
 	ScoreOf(v int, parents varset.Varset) float64
 	Size() int
+	SaveSubSet(fname string, vs []int)
 }
 
 // CreateRanker creates a ranker for variables given in cache
@@ -47,6 +52,27 @@ func (r *rankList) BestIn(v int, restric varset.Varset) (parents varset.Varset, 
 // and respects a maximum size of the parent set
 func (r *rankList) BestInLim(v int, restric varset.Varset, maxPa int) (parents varset.Varset, scr float64) {
 	return r.vars[v].bestIn(restric, maxPa)
+}
+
+func (r *rankList) SaveSubSet(fname string, vs []int) {
+	// log.Printf("clique (%v): %v\n", fname, vs)
+	w := ioutl.CreateFile(fname)
+	vset := varset.New(r.Size())
+	vset.SetInts(vs)
+	for _, v := range vs {
+		if r.vars[v].varIndex != v {
+			log.Panicf("ranker: wrong index! %v != %v\n", r.vars[v].varIndex, v)
+		}
+		fmt.Fprintf(w, "VAR %v\n", v)
+		for _, rec := range r.vars[v].scoreList {
+			pset := rec.Data().(varset.Varset)
+			if vset.IsSuperSet(pset) {
+				fmt.Fprintf(w, "%v %v\n", rec.Score(), strings.Join(conv.Sitoa(pset.DumpAsInts()), " "))
+			}
+		}
+		fmt.Fprintln(w)
+	}
+	w.Close()
 }
 
 type varRanker struct {
