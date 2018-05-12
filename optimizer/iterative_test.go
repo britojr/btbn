@@ -26,6 +26,7 @@ func TestGetInitialDAG(t *testing.T) {
 	for _, tt := range cases {
 		n := len(tt.iniclq) + len(tt.remain)
 		s := &IterativeSearch{common: newCommon(&fakeRanker{n})}
+		s.initIters = 50
 		got := s.getInitialDAG(tt.iniclq)
 		if n != got.Size() {
 			t.Errorf("wrong bn size, want (%v), got (%v)", n, got)

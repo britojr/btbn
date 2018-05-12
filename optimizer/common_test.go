@@ -69,6 +69,7 @@ func TestCommonSearch(t *testing.T) {
 		AlgIterativeSearch, &fakeRanker{10}, map[string]string{
 			ParmTreewidth:       "4",
 			ParmSearchVariation: OpGreedy,
+			ParmInitIters:       "50",
 		},
 	}, {
 		AlgSelectedSample, &fakeRanker{4}, map[string]string{

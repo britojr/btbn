@@ -116,6 +116,18 @@ func buildEmptyBN(ranker scr.Ranker) *bnstruct.BNStruct {
 	return bn
 }
 
+// LoopApproximated creates a number of approximated dags and returns the best one
+func LoopApproximated(tk *ktree.Ktree, ranker scr.Ranker, iters int) (bn *bnstruct.BNStruct) {
+	bn = Approximated(tk, ranker)
+	for i := 0; i < iters; i++ {
+		currBn := Approximated(tk, ranker)
+		if currBn.Better(bn) {
+			bn = currBn
+		}
+	}
+	return
+}
+
 // Exact learns an optimal dag from a ktree
 func Exact(tk *ktree.Ktree, ranker scr.Ranker) (bn *bnstruct.BNStruct) {
 	f, err := ioutil.TempFile("", "gob-")
@@ -123,7 +135,10 @@ func Exact(tk *ktree.Ktree, ranker scr.Ranker) (bn *bnstruct.BNStruct) {
 	fname := filepath.Base(f.Name())
 	f.Close()
 	ranker.SaveSubSet(fname, tk.Variables())
-	_, err = cmdsh.Exec(fmt.Sprintf("gobnilp -f=pss %s", fname), 0)
+	out, err := cmdsh.Exec(fmt.Sprintf("gobnilp -f=pss %s", fname), 0)
+	if err != nil {
+		fmt.Println(string(out))
+	}
 	errchk.Check(err, "")
 	solFile := strings.TrimSuffix(fname, filepath.Ext(fname)) + ".solution"
 	paLst, paScr := parseParentMat(solFile)

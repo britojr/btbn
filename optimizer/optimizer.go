@@ -26,6 +26,7 @@ const (
 	ParmNumTrees        = "num_trees"
 	ParmMutualInfo      = "mutual_info"
 	ParmSearchVariation = "search_variation"
+	ParmInitIters       = "init_iters"
 )
 
 // file parameters fields options

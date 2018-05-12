@@ -12,6 +12,7 @@ import (
 	"github.com/britojr/btbn/ktree"
 	"github.com/britojr/btbn/scr"
 	"github.com/britojr/btbn/varset"
+	"github.com/britojr/utl/conv"
 )
 
 // IterativeSearch implements the dag iterative building strategy
@@ -19,6 +20,8 @@ type IterativeSearch struct {
 	*common                             // common variables and methods
 	searchVariation string              // search variation
 	prevCliques     map[string]struct{} // previously sampled initial cliques
+
+	initIters int // number of iterations for initial dag (0 to use exact)
 
 	subSet []int // subset of variables
 
@@ -58,6 +61,7 @@ func (s *IterativeSearch) Search() *bnstruct.BNStruct {
 func (s *IterativeSearch) SetDefaultParameters() {
 	s.common.SetDefaultParameters()
 	s.searchVariation = OpGreedy
+	s.initIters = 50
 }
 
 // SetFileParameters sets parameters from input file
@@ -65,6 +69,9 @@ func (s *IterativeSearch) SetFileParameters(parms map[string]string) {
 	s.common.SetFileParameters(parms)
 	if searchVariation, ok := parms[ParmSearchVariation]; ok {
 		s.searchVariation = searchVariation
+	}
+	if initIters, ok := parms[ParmInitIters]; ok {
+		s.initIters = conv.Atoi(initIters)
 	}
 }
 
@@ -120,6 +127,9 @@ func (s *IterativeSearch) SetVarsSubSet(subSet []int) {
 }
 
 func (s *IterativeSearch) getInitialDAG(vars []int) *bnstruct.BNStruct {
+	if s.initIters > 0 {
+		return daglearner.LoopApproximated(ktree.New(vars, -1, -1), s.scoreRanker, s.initIters)
+	}
 	return daglearner.Exact(ktree.New(vars, -1, -1), s.scoreRanker)
 }
 
