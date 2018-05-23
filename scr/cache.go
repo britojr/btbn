@@ -50,7 +50,7 @@ func Read(fname string) *Cache {
 	currVar := 0
 	for scanner.Scan() {
 		words := strings.Fields(scanner.Text())
-		if len(words) == 0 || words[0] == "META" {
+		if len(words) == 0 || words[0] == "META" || words[0][0] == '#' {
 			continue
 		}
 		if words[0] == "VAR" {
